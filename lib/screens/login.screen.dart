@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:yayvo/common/show_my_snack_bar.dart';
 import 'package:yayvo/widgets/my_button.dart';
 import 'package:yayvo/widgets/my_logo.dart';
+import 'package:yayvo/widgets/my_text_form_field.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -45,27 +46,16 @@ class _LoginScreenState extends State<LoginScreen> {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 20),
+
               Form(
                 key: _formKey,
                 child: Column(
                   children: [
-                    TextFormField(
+                    MyTextFormField(
                       controller: _emailController,
-                      keyboardType: TextInputType.emailAddress,
-                      style: const TextStyle(color: Colors.white),
-                      decoration: InputDecoration(
-                        labelText: "Email",
-                        labelStyle: const TextStyle(color: Colors.white),
-                        prefixIcon: const Icon(Icons.email, color: Colors.white),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(14),
-                          borderSide: const BorderSide(color: Colors.white),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(14),
-                          borderSide: const BorderSide(color: Colors.blueAccent),
-                        ),
-                      ),
+                      label: "Email",
+                      prefixIcon: Icons.email,
+                      onChanged: (val) {},
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return "Please enter your email";
@@ -77,35 +67,24 @@ class _LoginScreenState extends State<LoginScreen> {
                       },
                     ),
                     const SizedBox(height: 15),
-                    TextFormField(
+                    MyTextFormField(
                       controller: _passwordController,
+                      label: "Password",
+                      prefixIcon: Icons.key,
                       obscureText: _obscurePassword,
-                      style: const TextStyle(color: Colors.white),
-                      decoration: InputDecoration(
-                        labelText: "Password",
-                        labelStyle: const TextStyle(color: Colors.white),
-                        prefixIcon: const Icon(Icons.lock, color: Colors.white),
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscurePassword
-                                ? Icons.visibility_off
-                                : Icons.visibility,
-                            color: Colors.white,
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              _obscurePassword = !_obscurePassword;
-                            });
-                          },
+                      onChanged: (val) {},
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _obscurePassword
+                              ? Icons.visibility_off
+                              : Icons.visibility,
+                          color: Colors.white,
                         ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(14),
-                          borderSide: const BorderSide(color: Colors.white),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(14),
-                          borderSide: const BorderSide(color: Colors.blueAccent),
-                        ),
+                        onPressed: () {
+                          setState(() {
+                            _obscurePassword = !_obscurePassword;
+                          });
+                        },
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
@@ -120,6 +99,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ],
                 ),
               ),
+
               const SizedBox(height: 10),
               GestureDetector(
                 onTap: () {
@@ -144,6 +124,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
               ),
+
               const SizedBox(height: 20),
               SizedBox(
                 width: MediaQuery.of(context).size.width - 150,
@@ -161,6 +142,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   text: "Login",
                 ),
               ),
+
               const SizedBox(height: 20),
               GestureDetector(
                 onTap: () {

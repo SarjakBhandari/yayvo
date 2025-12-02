@@ -47,44 +47,41 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 height: 45,
                 child: MyButton(
                   onPressed: () {
-                    setState(() {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context)=> RegisterConsumerScreen()),
-                      );
-                    });
-                    },
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const ConsumerRegistrationScreen(),
+                      ),
+                    );
+                  },
                   text: "I'm a Consumer",
                 ),
               ),
-
               const SizedBox(height: 10),
               SizedBox(
                 width: MediaQuery.of(context).size.width - 150,
                 height: 45,
                 child: MyButton(
                   onPressed: () {
-                    setState(() {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context)=> RegisterRetailerScreen()),
-                      );
-                    });
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const RetailerRegistrationScreen(),
+                      ),
+                    );
                   },
                   text: "I'm a Retailer",
                 ),
               ),
-
               const SizedBox(height: 20),
-
               GestureDetector(
                 onTap: () {
-                    setState(() {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context)=> LoginScreen()),
-                      );
-                    });
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const LoginScreen(),
+                    ),
+                  );
                 },
                 child: RichText(
                   text: const TextSpan(
