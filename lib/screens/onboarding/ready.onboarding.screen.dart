@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:yayvo/screens/home_feed.screen.dart';
 import 'package:yayvo/widgets/my_button.dart';
 import '../../widgets/my_review_card.dart';
 
@@ -8,23 +9,21 @@ class ReadyPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Dummy posts array using local icons
+// Single dummy product
     final List<Map<String, dynamic>> posts = [
       {
+        "id": "1",
         "imageUrl":
-        "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=400&h=300&fit=crop",
+        "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=600&h=600&fit=crop",
         "tags": [
-          {"icon": "assets/icons/beauty.png", "label": "Beauty", "color": Colors.teal},
-          {"icon": "assets/icons/dress.png", "label": "Fashion", "color": Colors.pink},
+          {"icon": "assets/icons/calm.png", "label": "Calm", "color": Colors.teal},
+          {"icon": "assets/icons/house.png", "label": "Cozy", "color": Colors.orange},
         ],
-        "reviewText": "These makeups were a Lit!"
-      },
-      {
-        "imageUrl":
-        "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=300&fit=crop",
-        "tags": [
-          {"icon": "assets/icons/excited.png", "label": "Excite", "color": Colors.pink},
-        ],
-        "reviewText": "Can't wait to get this watch! The design is amazing..."
+        "reviewText":
+        "The most calming atmosphere with ethically sourced beans. Every sip feels like a warm hug on a rainy day.",
+        "retailerName": "Cozy Corner Café",
+        "retailerAvatar":
+        "https://images.unsplash.com/photo-1551218808-94e220e084d2?w=100&h=100&fit=crop",
       },
     ];
 
@@ -60,6 +59,8 @@ class ReadyPage extends StatelessWidget {
                       imageUrl: post["imageUrl"],
                       tags: post["tags"],
                       reviewText: post["reviewText"],
+                      retailerName: post["retailerName"],
+                      retailerAvatar: post["retailerAvatar"]
                     );
                   },
                 ),
@@ -79,7 +80,12 @@ class ReadyPage extends StatelessWidget {
                   Expanded(
                     child: MyButton(
                       onPressed: () {
-                        // TODO: Add navigation later
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const HomeFeed(),
+                          ),
+                        );
                       },
                       text: "Start Exploring",
                     ),
