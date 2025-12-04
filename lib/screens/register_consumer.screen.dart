@@ -3,6 +3,7 @@ import 'package:yayvo/common/show_my_snack_bar.dart';
 import 'package:yayvo/widgets/my_button.dart';
 import 'package:yayvo/widgets/my_logo.dart';
 import 'package:yayvo/widgets/my_text_form_field.dart';
+import '../widgets/my_dropdown_form_field.dart';
 
 class ConsumerRegistrationScreen extends StatefulWidget {
   const ConsumerRegistrationScreen({super.key});
@@ -19,10 +20,22 @@ class _ConsumerRegistrationScreenState extends State<ConsumerRegistrationScreen>
   final TextEditingController _addressController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
-
+  final List<String> _countries = [
+    "Nepal",
+    "India",
+    "China",
+    "United States",
+    "United Kingdom",
+    "Australia",
+    "Canada",
+    "Germany",
+    "France",
+    "Japan"
+  ];
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   String _gender = "Male";
+  String? _selectedCountry;
 
   @override
   Widget build(BuildContext context) {
@@ -78,7 +91,6 @@ class _ConsumerRegistrationScreenState extends State<ConsumerRegistrationScreen>
                       onChanged: (val) {},
                       validator: (value) =>
                       value == null || value.isEmpty ? "Please select your DOB" : null,
-                      // Date picker logic
                       suffixIcon: IconButton(
                         icon: const Icon(Icons.date_range, color: Colors.white),
                         onPressed: () async {
@@ -138,13 +150,19 @@ class _ConsumerRegistrationScreenState extends State<ConsumerRegistrationScreen>
                       ],
                     ),
                     const SizedBox(height: 15),
-                    MyTextFormField(
-                      controller: _addressController,
-                      label: "Address",
+                    MyDropdownButtonFormField(
+                      label: "Country",
                       prefixIcon: Icons.location_pin,
-                      onChanged: (val) {},
+                      items: _countries,
+                      value: _selectedCountry,
+                      onChanged: (val) {
+                        setState(() {
+                          _selectedCountry = val;
+                          _addressController.text = val ?? "";
+                        });
+                      },
                       validator: (value) =>
-                      value == null || value.isEmpty ? "Please enter your address" : null,
+                      value == null || value.isEmpty ? "Please select your country" : null,
                     ),
                     const SizedBox(height: 15),
                     MyTextFormField(
