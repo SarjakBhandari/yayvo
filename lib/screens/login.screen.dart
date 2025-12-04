@@ -139,7 +139,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       );
                     }
                   },
-                  text: "Login",
+                  text: "Sign In",
                 ),
               ),
 
@@ -150,11 +150,11 @@ class _LoginScreenState extends State<LoginScreen> {
                 },
                 child: RichText(
                   text: const TextSpan(
-                    text: "Not registered? ",
+                    text: "Don't have an Account? ",
                     style: TextStyle(color: Colors.white, fontSize: 14),
                     children: [
                       TextSpan(
-                        text: "Register",
+                        text: "Sign Up",
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           decoration: TextDecoration.underline,
