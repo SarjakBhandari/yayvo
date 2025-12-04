@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:yayvo/screens/splash.screen.dart';
 import 'package:yayvo/screens/welcome.screen.dart';
 
 class App extends StatelessWidget {
@@ -6,6 +7,6 @@ class App extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(debugShowCheckedModeBanner: false, home: WelcomeScreen());
+    return MaterialApp(debugShowCheckedModeBanner: false, home: SplashScreen());
   }
 }
