@@ -4,6 +4,7 @@ import 'package:yayvo/widgets/my_button.dart';
 import 'package:yayvo/widgets/my_logo.dart';
 import 'package:yayvo/widgets/my_text_form_field.dart';
 
+import '../widgets/my_dropdown_form_field.dart';
 class RetailerRegistrationScreen extends StatefulWidget {
   const RetailerRegistrationScreen({super.key});
 
@@ -17,12 +18,26 @@ class _RetailerRegistrationScreenState extends State<RetailerRegistrationScreen>
   final TextEditingController _orgNameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _doeController = TextEditingController();
-  final TextEditingController _locationController = TextEditingController();
+  final TextEditingController _countryController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
 
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
+
+  String? _selectedCountry;
+  final List<String> _countries = [
+    "Nepal",
+    "India",
+    "China",
+    "United States",
+    "United Kingdom",
+    "Australia",
+    "Canada",
+    "Germany",
+    "France",
+    "Japan"
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -104,13 +119,19 @@ class _RetailerRegistrationScreenState extends State<RetailerRegistrationScreen>
                       ),
                     ),
                     const SizedBox(height: 15),
-                    MyTextFormField(
-                      controller: _locationController,
-                      label: "Location",
-                      prefixIcon: Icons.location_on,
-                      onChanged: (val) {},
+                    MyDropdownButtonFormField(
+                      label: "Country",
+                      prefixIcon: Icons.location_pin,
+                      items: _countries,
+                      value: _selectedCountry,
+                      onChanged: (val) {
+                        setState(() {
+                          _selectedCountry = val;
+                          _countryController.text = val ?? "";
+                        });
+                      },
                       validator: (value) =>
-                      value == null || value.isEmpty ? "Location is required" : null,
+                      value == null || value.isEmpty ? "Country is required" : null,
                     ),
                     const SizedBox(height: 15),
                     MyTextFormField(
