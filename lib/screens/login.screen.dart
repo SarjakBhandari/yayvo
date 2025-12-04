@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:yayvo/common/show_my_snack_bar.dart';
+import 'package:yayvo/screens/onboarding/interests.onboarding.screen.dart';
+import 'package:yayvo/screens/onboarding/welcome.screen.dart';
 import 'package:yayvo/widgets/my_button.dart';
 import 'package:yayvo/widgets/my_logo.dart';
 import 'package:yayvo/widgets/my_text_form_field.dart';
@@ -137,6 +139,13 @@ class _LoginScreenState extends State<LoginScreen> {
                         message: "Logged In!",
                         status: SnackBarStatus.success,
                       );
+
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => InterestsScreen(),
+                        ),
+                      );
                     }
                   },
                   text: "Sign In",
@@ -146,7 +155,12 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(height: 20),
               GestureDetector(
                 onTap: () {
-                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const WelcomeScreen(),
+                    ),
+                  );
                 },
                 child: RichText(
                   text: const TextSpan(
@@ -158,6 +172,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           decoration: TextDecoration.underline,
+                          color: Colors.blueAccent,
                         ),
                       ),
                     ],

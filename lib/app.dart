@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:yayvo/screens/splash.screen.dart';
-import 'package:yayvo/screens/welcome.screen.dart';
+
 
 class App extends StatelessWidget {
   const App({super.key});
