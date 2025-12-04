@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:yayvo/common/show_my_snack_bar.dart';
 import 'package:yayvo/screens/onboarding/interests.onboarding.screen.dart';
-import 'package:yayvo/screens/welcome.screen.dart';
+import 'package:yayvo/screens/onboarding/welcome.screen.dart';
 import 'package:yayvo/widgets/my_button.dart';
 import 'package:yayvo/widgets/my_logo.dart';
 import 'package:yayvo/widgets/my_text_form_field.dart';
