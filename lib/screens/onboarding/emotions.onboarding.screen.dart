@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:yayvo/screens/onboarding/follower.onboarding.screen.dart';
 import 'package:yayvo/widgets/my_button.dart';
 
 class EmotionPreferencesScreen extends StatefulWidget {
@@ -139,7 +140,16 @@ class _EmotionPreferencesScreenState extends State<EmotionPreferencesScreen> {
                 width: double.infinity,
                 height: 45,
                 child: MyButton(
-                  onPressed: (){},
+                  onPressed: (){
+                    setState(() {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const FollowSuggestionsScreen(),
+                        ),
+                      );
+                    });
+                  },
                   text: "Next",
                 ),
               ),
