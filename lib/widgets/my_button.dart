@@ -16,7 +16,7 @@ class MyButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return ElevatedButton(
         style: ElevatedButton.styleFrom(
-          backgroundColor: Color.fromARGB(140, 177, 144, 253),
+          backgroundColor: Color.fromARGB(189, 94, 78, 142),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
           ),

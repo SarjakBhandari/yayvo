@@ -16,7 +16,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromARGB(100, 23, 26, 28),
+      backgroundColor: Colors.white,
       body: Center(
         child: SingleChildScrollView(
           child: Column(
@@ -26,7 +26,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               const Text(
                 "Discover lifestyle through emotions.",
                 style: TextStyle(
-                  color: Colors.white,
+                  color: Colors.black,
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
@@ -36,7 +36,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               const Text(
                 "Choose your role to get Started.",
                 style: TextStyle(
-                  color: Colors.white,
+                  color: Colors.black,
                   fontSize: 15,
                 ),
                 textAlign: TextAlign.center,
@@ -86,7 +86,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 child: RichText(
                   text: const TextSpan(
                     text: "Already registered? ",
-                    style: TextStyle(color: Colors.white, fontSize: 14),
+                    style: TextStyle(color: Colors.black, fontSize: 14),
                     children: [
                       TextSpan(
                         text: "Login",

@@ -25,15 +25,15 @@ class MyTextFormField extends StatelessWidget {
     return TextFormField(
       controller: controller,
       obscureText: obscureText ?? false,
-      style: const TextStyle(color: Colors.white),
+      style: const TextStyle(color: Colors.black),
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: const TextStyle(color: Colors.white),
-        prefixIcon: Icon(prefixIcon, color: Colors.white),
+        labelStyle: const TextStyle(color: Colors.black),
+        prefixIcon: Icon(prefixIcon, color: Colors.black),
         suffixIcon: suffixIcon,
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: Colors.white),
+          borderSide: const BorderSide(color: Colors.black),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),

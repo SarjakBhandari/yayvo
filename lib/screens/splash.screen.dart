@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:yayvo/screens/onboarding/starting.onboarding.screen.dart';
 import 'package:yayvo/screens/onboarding/welcome.screen.dart';
 import 'package:yayvo/widgets/my_logo.dart';
 
@@ -16,7 +17,7 @@ class _SplashScreenState extends State<SplashScreen> {
     Future.delayed(const Duration(seconds: 5), () {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const WelcomeScreen()),
+        MaterialPageRoute(builder: (context) => const OnboardingFlow()),
       );
     });
   }

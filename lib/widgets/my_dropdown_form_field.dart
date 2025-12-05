@@ -24,11 +24,11 @@ class MyDropdownButtonFormField extends StatelessWidget {
       value: value,
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: const TextStyle(color: Colors.white),
-        prefixIcon: Icon(prefixIcon, color: Colors.white),
+        labelStyle: const TextStyle(color: Colors.black),
+        prefixIcon: Icon(prefixIcon, color: Colors.black),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: Colors.white),
+          borderSide: const BorderSide(color: Colors.black),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
@@ -36,7 +36,7 @@ class MyDropdownButtonFormField extends StatelessWidget {
         ),
       ),
       dropdownColor: const Color.fromARGB(255, 40, 40, 40),
-      style: const TextStyle(color: Colors.white),
+      style: const TextStyle(color: Colors.black),
       items: items.map((item) {
         return DropdownMenuItem(
           value: item,
