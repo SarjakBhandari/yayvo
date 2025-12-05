@@ -22,17 +22,18 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromARGB(100, 23, 26, 28),
+      backgroundColor: Colors.white,
       body: Center(
         child: SingleChildScrollView(
           child: Column(
             children: [
               MyLogo(size: 100, radius: 24),
-              const SizedBox(height: 30),
+
+              const SizedBox(height: 40),
               const Text(
                 "Welcome Back!",
                 style: TextStyle(
-                  color: Colors.white,
+                  color: Colors.black,
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
@@ -42,7 +43,7 @@ class _LoginScreenState extends State<LoginScreen> {
               const Text(
                 "Please login with your credentials",
                 style: TextStyle(
-                  color: Colors.white,
+                  color: Colors.black,
                   fontSize: 15,
                 ),
                 textAlign: TextAlign.center,
@@ -80,7 +81,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           _obscurePassword
                               ? Icons.visibility_off
                               : Icons.visibility,
-                          color: Colors.white,
+                          color: Colors.black,
                         ),
                         onPressed: () {
                           setState(() {
@@ -165,7 +166,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: RichText(
                   text: const TextSpan(
                     text: "Don't have an Account? ",
-                    style: TextStyle(color: Colors.white, fontSize: 14),
+                    style: TextStyle(color: Colors.black, fontSize: 14),
                     children: [
                       TextSpan(
                         text: "Sign Up",

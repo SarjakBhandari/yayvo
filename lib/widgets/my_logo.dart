@@ -16,6 +16,9 @@ class MyLogo extends StatelessWidget {
         width: this.size,
         height: this.size,
         decoration: BoxDecoration(
+          border: Border.all(
+            width: 2
+          ),
             borderRadius: BorderRadius.circular(radius ?? 24)
         ),
         child: ClipRRect(
