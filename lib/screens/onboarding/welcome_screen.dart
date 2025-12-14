@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:yayvo/screens/login.screen.dart';
-import 'package:yayvo/screens/register_consumer.screen.dart';
-import 'package:yayvo/screens/register_retailer.screen.dart';
+import 'package:yayvo/screens/login_screen.dart';
+import 'package:yayvo/screens/register_consumer_screen.dart';
+import 'package:yayvo/screens/register_retailer_screen.dart';
 import 'package:yayvo/widgets/my_button.dart';
 import 'package:yayvo/widgets/my_logo.dart';
 

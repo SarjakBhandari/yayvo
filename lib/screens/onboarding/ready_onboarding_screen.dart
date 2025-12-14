@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:yayvo/screens/home_feed.screen.dart';
+import 'package:yayvo/screens/dashboard_screen.dart';
 import 'package:yayvo/widgets/my_button.dart';
 import '../../widgets/my_review_card.dart';
 

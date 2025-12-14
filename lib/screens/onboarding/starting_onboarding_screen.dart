@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:yayvo/screens/login.screen.dart';
-import 'package:yayvo/screens/onboarding/welcome.screen.dart';
-
+import 'package:yayvo/screens/onboarding/welcome_screen.dart';
 import '../../widgets/onboarding.widget.dart';
 
 

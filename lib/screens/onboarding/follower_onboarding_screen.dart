@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:yayvo/screens/onboarding/ready.onboarding.screen.dart';
+import 'package:yayvo/screens/onboarding/ready_onboarding_screen.dart';
 import 'package:yayvo/widgets/my_button.dart';
 
 import '../../widgets/followers_card.dart';

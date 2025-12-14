@@ -1,36 +1,39 @@
 import 'package:flutter/material.dart';
-import 'package:yayvo/screens/onboarding/follower.onboarding.screen.dart';
+import 'package:yayvo/screens/onboarding/emotions_onboarding_screen.dart';
 import 'package:yayvo/widgets/my_button.dart';
 
-class EmotionPreferencesScreen extends StatefulWidget {
-  const EmotionPreferencesScreen({super.key});
+class InterestsScreen extends StatefulWidget {
+  const InterestsScreen({super.key});
 
   @override
-  State<EmotionPreferencesScreen> createState() => _EmotionPreferencesScreenState();
+  State<InterestsScreen> createState() => _InterestsScreenState();
 }
 
-class _EmotionPreferencesScreenState extends State<EmotionPreferencesScreen> {
-  final List<Map<String, String>> emotions = [
-    {"name": "Joy", "icon": "assets/icons/joy.png"},
-    {"name": "Calm", "icon": "assets/icons/calm.png"},
-    {"name": "Excitement", "icon": "assets/icons/excited.png"},
-    {"name": "Nostalgia", "icon": "assets/icons/nostalgic.png"},
-    {"name": "Minimalist", "icon": "assets/icons/minimalistic.png"},
+class _InterestsScreenState extends State<InterestsScreen> {
+  final List<Map<String, String>> interests = [
+    {"name": "Fashion", "icon": "assets/icons/dress.png"},
+    {"name": "Wellness", "icon": "assets/icons/meditation.png"},
+    {"name": "Travel", "icon": "assets/icons/travel.png"},
+    {"name": "Tech", "icon": "assets/icons/computer.png"},
+    {"name": "Food", "icon": "assets/icons/salad.png"},
+    {"name": "Fitness", "icon": "assets/icons/fitness.png"},
+    {"name": "Home", "icon": "assets/icons/house.png"},
+    {"name": "Beauty", "icon": "assets/icons/beauty.png"},
+    {"name": "Art", "icon": "assets/icons/art.png"},
   ];
 
-  final List<String> emotionPreferences = [];
+  final List<String> interestsSelected = [];
 
-  void toggleEmotion(String emotion) {
+  void toggleInterest(String interest) {
     setState(() {
-      if (emotionPreferences.contains(emotion)) {
-        // remove if already selected
-        emotionPreferences.remove(emotion);
+      if (interestsSelected.contains(interest)) {
+        interestsSelected.remove(interest);
       } else {
-        // add to end of list (priority order)
-        emotionPreferences.add(emotion);
+        interestsSelected.add(interest);
       }
     });
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -46,7 +49,7 @@ class _EmotionPreferencesScreenState extends State<EmotionPreferencesScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      "What speaks to you?",
+                      "What are you into?",
                       style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
@@ -54,7 +57,7 @@ class _EmotionPreferencesScreenState extends State<EmotionPreferencesScreen> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      "Choose your emotional preferences in priority order",
+                      "Select your lifestyle interests",
                       style: TextStyle(
                         color: Colors.grey.shade600,
                         fontSize: 14,
@@ -69,16 +72,12 @@ class _EmotionPreferencesScreenState extends State<EmotionPreferencesScreen> {
                           mainAxisSpacing: 12,
                           childAspectRatio: 1,
                         ),
-                        itemCount: emotions.length,
+                        itemCount: interests.length,
                         itemBuilder: (context, index) {
-                          final emotion = emotions[index];
-                          final name = emotion["name"]!;
-                          final iconPath = emotion["icon"]!;
-                          final isSelected = emotionPreferences.contains(name);
-                          final priorityIndex = emotionPreferences.indexOf(name);
-
+                          final interest = interests[index];
+                          final isSelected = interestsSelected.contains(interest["name"]);
                           return GestureDetector(
-                            onTap: () => toggleEmotion(name),
+                            onTap: () => toggleInterest(interest["name"]!),
                             child: AnimatedContainer(
                               duration: const Duration(milliseconds: 200),
                               curve: Curves.easeInOut,
@@ -99,14 +98,14 @@ class _EmotionPreferencesScreenState extends State<EmotionPreferencesScreen> {
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Image.asset(
-                                    iconPath,
+                                    interest["icon"]!,
                                     height: 40,
                                     width: 40,
                                     fit: BoxFit.contain,
                                   ),
                                   const SizedBox(height: 8),
                                   Text(
-                                    name,
+                                    interest["name"]!,
                                     style: TextStyle(
                                       fontSize: 14,
                                       color: isSelected
@@ -114,18 +113,6 @@ class _EmotionPreferencesScreenState extends State<EmotionPreferencesScreen> {
                                           : Colors.grey.shade800,
                                     ),
                                   ),
-                                  if (isSelected)
-                                    Padding(
-                                      padding: const EdgeInsets.only(top: 4),
-                                      child: Text(
-                                        "Priority ${priorityIndex + 1}",
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: Theme.of(context).colorScheme.primary,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ),
                                 ],
                               ),
                             ),
@@ -145,7 +132,7 @@ class _EmotionPreferencesScreenState extends State<EmotionPreferencesScreen> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const FollowSuggestionsScreen(),
+                          builder: (context) => const EmotionPreferencesScreen(),
                         ),
                       );
                     });
