@@ -28,6 +28,38 @@ class ConsumerHomeScreen extends StatelessWidget {
         "likes": 5,
         "saved": false,
       },
+      {
+        "id": "1",
+        "imageUrl":
+        "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=600&h=600&fit=crop",
+        "title": "Cozy Beauty Café",
+        "emotions": [
+          {"emotion": "Calm", "emoji": "😌"},
+          {"emotion": "Cozy", "emoji": "🏠"},
+        ],
+        "sentimentSummary": "The most calming atmosphere with good makeup.",
+        "retailerName": "Cozy Beauty Café",
+        "retailerAvatar":
+        "https://images.unsplash.com/photo-1551218808-94e220e084d2?w=100&h=100&fit=crop",
+        "likes": 5,
+        "saved": false,
+      },
+      {
+        "id": "1",
+        "imageUrl":
+        "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=600&h=600&fit=crop",
+        "title": "Cozy Beauty Café",
+        "emotions": [
+          {"emotion": "Calm", "emoji": "😌"},
+          {"emotion": "Cozy", "emoji": "🏠"},
+        ],
+        "sentimentSummary": "The most calming atmosphere with good makeup.",
+        "retailerName": "Cozy Beauty Café",
+        "retailerAvatar":
+        "https://images.unsplash.com/photo-1551218808-94e220e084d2?w=100&h=100&fit=crop",
+        "likes": 5,
+        "saved": false,
+      },
     ];
 
     // Dummy filters
@@ -113,13 +145,18 @@ class ConsumerHomeScreen extends StatelessWidget {
               ),
             ),
 
-            // Feed (vertical list of SentimentCards)
-            ListView.separated(
+            // Feed (grid of SentimentCards)
+            GridView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               padding: const EdgeInsets.all(16),
               itemCount: mockProducts.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 16),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: MediaQuery.of(context).size.width > 800 ? 2 : 1,
+                crossAxisSpacing: 50,
+                mainAxisSpacing: 50,
+                childAspectRatio: 0.71, // tweak for card proportions
+              ),
               itemBuilder: (context, index) {
                 final product = mockProducts[index];
                 return SentimentCard(
@@ -128,8 +165,7 @@ class ConsumerHomeScreen extends StatelessWidget {
                   title: product["title"],
                   retailerName: product["retailerName"],
                   retailerAvatar: product["retailerAvatar"],
-                  emotions:
-                  List<Map<String, String>>.from(product["emotions"]),
+                  emotions: List<Map<String, String>>.from(product["emotions"]),
                   sentimentSummary: product["sentimentSummary"],
                   likes: product["likes"],
                   saved: product["saved"],
