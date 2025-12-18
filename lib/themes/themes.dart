@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 class AppTheme {
   static ThemeData lightTheme = ThemeData(
     brightness: Brightness.light,
+    fontFamily: 'OpenSans',
     scaffoldBackgroundColor: Colors.white,
     primaryColor: const Color.fromARGB(189, 94, 78, 142), // matches MyButton
     colorScheme: const ColorScheme.light(
@@ -107,6 +108,7 @@ class AppTheme {
 
   static ThemeData darkTheme = ThemeData(
     brightness: Brightness.dark,
+    fontFamily: 'OpenSans',
     scaffoldBackgroundColor: Colors.black,
     primaryColor: const Color.fromARGB(189, 94, 78, 142),
     colorScheme: const ColorScheme.dark(
