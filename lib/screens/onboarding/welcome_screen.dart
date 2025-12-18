@@ -15,33 +15,43 @@ class WelcomeScreen extends StatefulWidget {
 class _WelcomeScreenState extends State<WelcomeScreen> {
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context); // Access current theme
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: Center(
         child: SingleChildScrollView(
           child: Column(
             children: [
               MyLogo(size: 150, radius: 40),
               const SizedBox(height: 30),
-              const Text(
+
+              // Headline text styled via theme
+              Text(
                 "Discover lifestyle through emotions.",
-                style: TextStyle(
-                  color: Colors.black,
+                style: theme.textTheme.titleMedium?.copyWith(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
+                  color: theme.colorScheme.onBackground,
                 ),
                 textAlign: TextAlign.center,
               ),
+
               const SizedBox(height: 15),
-              const Text(
+
+              // Subtitle text styled via theme
+              Text(
                 "Choose your role to get Started.",
-                style: TextStyle(
-                  color: Colors.black,
+                style: theme.textTheme.bodyMedium?.copyWith(
                   fontSize: 15,
+                  color: theme.colorScheme.onBackground,
                 ),
                 textAlign: TextAlign.center,
               ),
+
               const SizedBox(height: 20),
+
+              // Consumer button
               SizedBox(
                 width: MediaQuery.of(context).size.width - 150,
                 height: 45,
@@ -57,7 +67,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   text: "I'm a Consumer",
                 ),
               ),
+
               const SizedBox(height: 10),
+
+              // Retailer button
               SizedBox(
                 width: MediaQuery.of(context).size.width - 150,
                 height: 45,
@@ -73,7 +86,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   text: "I'm a Retailer",
                 ),
               ),
+
               const SizedBox(height: 20),
+
+              // Login link styled via theme
               GestureDetector(
                 onTap: () {
                   Navigator.push(
@@ -84,15 +100,19 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   );
                 },
                 child: RichText(
-                  text: const TextSpan(
+                  text: TextSpan(
                     text: "Already registered? ",
-                    style: TextStyle(color: Colors.black, fontSize: 14),
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontSize: 14,
+                      color: theme.colorScheme.onBackground,
+                    ),
                     children: [
                       TextSpan(
                         text: "Login",
-                        style: TextStyle(
+                        style: theme.textTheme.bodyMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                           decoration: TextDecoration.underline,
+                          color: theme.colorScheme.primary,
                         ),
                       ),
                     ],

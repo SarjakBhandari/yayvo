@@ -34,11 +34,12 @@ class _InterestsScreenState extends State<InterestsScreen> {
     });
   }
 
-
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
@@ -48,25 +49,25 @@ class _InterestsScreenState extends State<InterestsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       "What are you into?",
-                      style: TextStyle(
-                        fontSize: 22,
+                      style: theme.textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.bold,
+                        color: theme.colorScheme.onBackground,
                       ),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       "Select your lifestyle interests",
-                      style: TextStyle(
-                        color: Colors.grey.shade600,
-                        fontSize: 14,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurface.withOpacity(0.7),
                       ),
                     ),
                     const SizedBox(height: 24),
                     Expanded(
                       child: GridView.builder(
-                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: 3,
                           crossAxisSpacing: 12,
                           mainAxisSpacing: 12,
@@ -75,7 +76,8 @@ class _InterestsScreenState extends State<InterestsScreen> {
                         itemCount: interests.length,
                         itemBuilder: (context, index) {
                           final interest = interests[index];
-                          final isSelected = interestsSelected.contains(interest["name"]);
+                          final isSelected =
+                          interestsSelected.contains(interest["name"]);
                           return GestureDetector(
                             onTap: () => toggleInterest(interest["name"]!),
                             child: AnimatedContainer(
@@ -86,13 +88,13 @@ class _InterestsScreenState extends State<InterestsScreen> {
                                 borderRadius: BorderRadius.circular(16),
                                 border: Border.all(
                                   color: isSelected
-                                      ? Theme.of(context).colorScheme.primary
-                                      : Colors.grey.shade300,
+                                      ? theme.colorScheme.primary
+                                      : theme.dividerColor,
                                   width: 2,
                                 ),
                                 color: isSelected
-                                    ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
-                                    : Theme.of(context).cardColor,
+                                    ? theme.colorScheme.primary.withOpacity(0.1)
+                                    : theme.cardColor,
                               ),
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
@@ -106,11 +108,11 @@ class _InterestsScreenState extends State<InterestsScreen> {
                                   const SizedBox(height: 8),
                                   Text(
                                     interest["name"]!,
-                                    style: TextStyle(
+                                    style: theme.textTheme.bodyMedium?.copyWith(
                                       fontSize: 14,
                                       color: isSelected
-                                          ? Theme.of(context).colorScheme.primary
-                                          : Colors.grey.shade800,
+                                          ? theme.colorScheme.primary
+                                          : theme.colorScheme.onSurface,
                                     ),
                                   ),
                                 ],
@@ -127,15 +129,14 @@ class _InterestsScreenState extends State<InterestsScreen> {
                 width: double.infinity,
                 height: 45,
                 child: MyButton(
-                  onPressed: (){
-                    setState(() {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const EmotionPreferencesScreen(),
-                        ),
-                      );
-                    });
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                        const EmotionPreferencesScreen(),
+                      ),
+                    );
                   },
                   text: "Next",
                 ),
