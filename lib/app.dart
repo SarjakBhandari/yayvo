@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:yayvo/screens/splash.screen.dart';
+import 'package:yayvo/screens/dashboard_screen.dart';
+import 'package:yayvo/screens/onboarding/welcome_screen.dart';
+import 'package:yayvo/screens/splash_screen.dart';
 
 
 class App extends StatelessWidget {

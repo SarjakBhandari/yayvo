@@ -49,11 +49,14 @@ class FollowSuggestionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Card(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
       elevation: 2,
+      color: theme.cardColor, // ✅ themed card background
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Row(
@@ -66,16 +69,17 @@ class FollowSuggestionCard extends StatelessWidget {
                 children: [
                   Text(
                     name,
-                    style: const TextStyle(
+                    style: theme.textTheme.titleMedium?.copyWith(
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
+                      color: theme.colorScheme.onBackground,
                     ),
                   ),
                   Text(
                     type,
-                    style: TextStyle(
+                    style: theme.textTheme.bodySmall?.copyWith(
                       fontSize: 13,
-                      color: Colors.grey.shade600,
+                      color: theme.colorScheme.onSurface.withOpacity(0.7),
                     ),
                   ),
                 ],

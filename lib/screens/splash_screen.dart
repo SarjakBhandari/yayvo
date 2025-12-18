@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:yayvo/screens/onboarding/starting.onboarding.screen.dart';
-import 'package:yayvo/screens/onboarding/welcome.screen.dart';
+import 'package:yayvo/screens/onboarding/starting_onboarding_screen.dart';
 import 'package:yayvo/widgets/my_logo.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -24,25 +23,29 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
-      backgroundColor: const Color.fromARGB(100, 23, 26, 28),
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             MyLogo(size: 150, radius: 40),
             const SizedBox(height: 20),
-            const Text(
+
+            Text(
               "YAYVO",
-              style: TextStyle(
-                color: Colors.white,
+              style: theme.textTheme.titleMedium?.copyWith(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
+                color: theme.colorScheme.onBackground,
               ),
             ),
+
             const SizedBox(height: 10),
-            const CircularProgressIndicator(
-              color: Colors.blueAccent,
+
+            CircularProgressIndicator(
+              color: theme.colorScheme.secondary,
             ),
           ],
         ),
