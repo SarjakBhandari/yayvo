@@ -1,259 +1,200 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:yayvo/widgets/my_button.dart';
+import 'package:yayvo/widgets/my_text_form_field.dart';
+import 'package:yayvo/common/show_my_snack_bar.dart';
 
 class AddReviewScreen extends StatefulWidget {
   const AddReviewScreen({super.key});
 
   @override
-  State<AddReviewScreen> createState() => _AddReviewScreen();
+  State<AddReviewScreen> createState() => _AddReviewScreenState();
 }
 
-class _AddReviewScreen extends State<AddReviewScreen> {
+class _AddReviewScreenState extends State<AddReviewScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final TextEditingController _titleController = TextEditingController();
+  final TextEditingController _reviewController = TextEditingController();
+
+
+  final List<String> selectedEmotions = [];
+
+
   final List<Map<String, String>> emotions = [
-    {"emoji": "😊", "label": "Joy"},
-    {"emoji": "😌", "label": "Calm"},
-    {"emoji": "🤩", "label": "Excite"},
-    {"emoji": "🥰", "label": "Nostalgia"},
-    {"emoji": "✨", "label": "Minimalist"},
-    {"emoji": "☕", "label": "Cozy"},
-    {"emoji": "💎", "label": "Luxurious"},
-    {"emoji": "😔", "label": "Disappoint"},
+    {"name": "Joy", "icon": "assets/icons/joy.png"},
+    {"name": "Calm", "icon": "assets/icons/calm.png"},
+    {"name": "Excitement", "icon": "assets/icons/excited.png"},
+    {"name": "Nostalgia", "icon": "assets/icons/nostalgic.png"},
+    {"name": "Minimalist", "icon": "assets/icons/minimalistic.png"},
   ];
 
-  List<String> selectedEmotions = [];
-  int intensity = 50;
-  String sentimentText = "";
-  String mentionedProduct = "";
+  double rating = 3;
 
-  void toggleEmotion(String label) {
+  void toggleEmotion(String emotion) {
     setState(() {
-      if (selectedEmotions.contains(label)) {
-        selectedEmotions.remove(label);
+      if (selectedEmotions.contains(emotion)) {
+        selectedEmotions.remove(emotion);
       } else {
-        selectedEmotions.add(label);
+        selectedEmotions.add(emotion);
       }
     });
   }
 
+
+
+  void _submitReview() {
+    if (_formKey.currentState!.validate()) {
+      showMySnackBar(
+        context: context,
+        message: "Review submitted successfully!",
+        status: SnackBarStatus.success,
+      );
+
+      _titleController.clear();
+      _reviewController.clear();
+      selectedEmotions.clear();
+      rating = 3;
+      setState(() {});
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final canPost = selectedEmotions.isNotEmpty && sentimentText.trim().isNotEmpty;
+    final theme = Theme.of(context);
 
-    return SizedBox.expand(
-      child: SafeArea(
+    return Scaffold(
+      backgroundColor: theme.scaffoldBackgroundColor,
+      appBar: AppBar(
+        title: const Text("Add Review"),
+        backgroundColor: theme.colorScheme.primary,
+        foregroundColor: theme.colorScheme.onPrimary,
+      ),
+      body: SafeArea(
         child: SingleChildScrollView(
-          child: Column(
-            children: [
-              // Header
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).cardColor,
-                  border: const Border(bottom: BorderSide(color: Colors.grey)),
+          padding: const EdgeInsets.all(16),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                MyTextFormField(
+                  controller: _titleController,
+                  label: "Title",
+                  prefixIcon: Icons.title,
+                  onChanged: (_) {},
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.arrow_back),
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                    const Text("Share Sentiment"),
-                    ElevatedButton(
-                      onPressed: canPost ? () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text("Your emotional insight has been shared!")),
-                        );
-                        Navigator.pop(context);
-                      } : null,
-                      child: const Text("Post"),
-                    ),
-                  ],
+                const SizedBox(height: 16),
+
+                MyTextFormField(
+                  controller: _reviewController,
+                  label: "Your Review",
+                  prefixIcon: Icons.comment,
+                  onChanged: (_) {},
                 ),
-              ),
+                const SizedBox(height: 24),
 
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  children: [
-                    // Emotion Picker
-                    Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text("How does this make you feel?"),
-                            const SizedBox(height: 12),
-                            GridView.builder(
-                              shrinkWrap: true,
-                              physics: const NeverScrollableScrollPhysics(),
-                              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 4,
-                                crossAxisSpacing: 4,
-                                mainAxisSpacing: 4,
-                                childAspectRatio: 2, // keep square buttons
-                              ),
-                              itemCount: emotions.length,
-                              itemBuilder: (context, index) {
-                                final emotion = emotions[index];
-                                final isSelected = selectedEmotions.contains(emotion["label"]);
-                                return GestureDetector(
-                                  onTap: () => toggleEmotion(emotion["label"]!),
-                                  child: Container(
-                                    padding: const EdgeInsets.all(3), // smaller padding
-                                    decoration: BoxDecoration(
-                                      color: isSelected ? Colors.blue.shade100 : Colors.grey.shade200,
-                                      borderRadius: BorderRadius.circular(10),
-                                      border: Border.all(
-                                        color: isSelected ? Colors.blue : Colors.transparent,
-                                        width: 1.5,
-                                      ),
-                                    ),
-                                    child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        Text(
-                                          emotion["emoji"]!,
-                                          style: const TextStyle(fontSize: 18), // smaller emoji
-                                        ),
-                                        const SizedBox(height: 2),
-                                        Text(
-                                          emotion["label"]!,
-                                          style: const TextStyle(fontSize: 10), // smaller label
-                                          textAlign: TextAlign.center,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
+                Text(
+                  "Add Image",
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: theme.colorScheme.onBackground,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                GestureDetector(
+                  child: Container(
+                    height: 150,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: theme.dividerColor),
+                      borderRadius: BorderRadius.circular(12),
+                      color: theme.cardColor,
                     ),
+                    child: Center(
+                      child: Icon(Icons.add_a_photo,
+                          size: 40, color: theme.colorScheme.primary),
+                    )
+                  ),
+                ),
+                const SizedBox(height: 24),
 
-                    const SizedBox(height: 16),
+                Text(
+                  "Select Emotions",
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: theme.colorScheme.onBackground,
+                  ),
+                ),
+                const SizedBox(height: 12),
 
-                    // Mood Intensity
-                    if (selectedEmotions.isNotEmpty)
-                      Card(
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            children: [
-                              Text("Intensity 🎚️"),
-                              Slider(
-                                value: intensity.toDouble(),
-                                min: 0,
-                                max: 100,
-                                divisions: 100,
-                                label: "$intensity",
-                                onChanged: (val) {
-                                  setState(() => intensity = val.toInt());
-                                },
-                              ),
-                              Text(
-                                intensity < 30
-                                    ? "Subtle feeling"
-                                    : intensity < 70
-                                    ? "Moderate feeling"
-                                    : "Intense feeling",
-                                style: const TextStyle(fontSize: 12, color: Colors.grey),
-                              ),
-                            ],
+                GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: emotions.length,
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 3,
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 12,
+                    childAspectRatio: 1,
+                  ),
+                  itemBuilder: (context, index) {
+                    final emotion = emotions[index];
+                    final isSelected =
+                    selectedEmotions.contains(emotion["name"]);
+                    return GestureDetector(
+                      onTap: () => toggleEmotion(emotion["name"]!),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: isSelected
+                                ? theme.colorScheme.primary
+                                : theme.dividerColor,
+                            width: 2,
                           ),
+                          color: isSelected
+                              ? theme.colorScheme.primary.withOpacity(0.1)
+                              : theme.cardColor,
                         ),
-                      ),
-
-                    const SizedBox(height: 16),
-
-                    // Text Input
-                    Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
                         child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Text("Describe your experience"),
+                            Image.asset(
+                              emotion["icon"]!,
+                              height: 40,
+                              width: 40,
+                              fit: BoxFit.contain,
+                            ),
                             const SizedBox(height: 8),
-                            TextField(
-                              maxLines: 4,
-                              decoration: const InputDecoration(
-                                hintText: "Share what this product or experience means to you...",
-                                border: OutlineInputBorder(),
+                            Text(
+                              emotion["name"]!,
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: isSelected
+                                    ? theme.colorScheme.primary
+                                    : theme.colorScheme.onSurface,
                               ),
-                              onChanged: (val) => setState(() => sentimentText = val),
-                            ),
-                            const SizedBox(height: 8),
-                            Text("${sentimentText.length} characters",
-                                style: const TextStyle(fontSize: 12, color: Colors.grey)),
-                          ],
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    // Mention Product
-                    Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text("Mention a Product (optional)"),
-                            const SizedBox(height: 8),
-                            TextField(
-                              decoration: const InputDecoration(
-                                prefixIcon: Icon(Icons.tag),
-                                hintText: "e.g., Artisan Coffee Blend",
-                                border: OutlineInputBorder(),
-                              ),
-                              onChanged: (val) => setState(() => mentionedProduct = val),
-                            ),
-                            const SizedBox(height: 8),
-                            const Text("Link your review to a specific product.",
-                                style: TextStyle(fontSize: 12, color: Colors.grey)),
-                          ],
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    // Media Upload
-                    Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text("Add media (optional)"),
-                            const SizedBox(height: 12),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                OutlinedButton.icon(
-                                  onPressed: () {},
-                                  icon: const Icon(Icons.image),
-                                  label: const Text("Add Photo"),
-                                ),
-                                OutlinedButton.icon(
-                                  onPressed: () {},
-                                  icon: const Icon(Icons.video_call),
-                                  label: const Text("Add Video"),
-                                ),
-                              ],
                             ),
                           ],
                         ),
                       ),
-                    ),
-                  ],
+                    );
+                  },
                 ),
-              ),
-            ],
+                const SizedBox(height: 24),
+
+                SizedBox(
+                  width: double.infinity,
+                  height: 45,
+                  child: MyButton(
+                    onPressed: _submitReview,
+                    text: "Submit Review",
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
