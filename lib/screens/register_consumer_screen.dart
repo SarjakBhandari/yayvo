@@ -53,7 +53,6 @@ class _ConsumerRegistrationScreenState extends State<ConsumerRegistrationScreen>
                 const Text(
                   "Create Consumer Account",
                   style: TextStyle(
-                    color: Colors.black,
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                   ),
