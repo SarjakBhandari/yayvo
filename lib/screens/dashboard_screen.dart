@@ -13,43 +13,61 @@ class HomeFeed extends StatefulWidget {
 }
 
 class _HomeFeedState extends State<HomeFeed> {
-  int _selectedIndex=0;
+  int _selectedIndex = 0;
 
-  List<Widget> lstBottomScreen = [
-    const ConsumerHomeScreen(),
-    const ExploreScreen(),
-    const AddReviewScreen(),
-    const CollectionsScreen(),
-    const ProfileScreen()
+  final List<Widget> lstBottomScreen = const [
+    ConsumerHomeScreen(),
+    ExploreScreen(),
+    AddReviewScreen(),
+    CollectionsScreen(),
+    ProfileScreen(),
   ];
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: theme.scaffoldBackgroundColor,
       bottomNavigationBar: BottomNavigationBar(
-        selectedItemColor: Theme.of(context).colorScheme.primary,
-        unselectedItemColor: Colors.grey,
+        backgroundColor: theme.bottomNavigationBarTheme.backgroundColor,
+        selectedItemColor:
+        theme.bottomNavigationBarTheme.selectedItemColor ??
+            theme.colorScheme.primary,
+        unselectedItemColor:
+        theme.bottomNavigationBarTheme.unselectedItemColor ??
+            theme.colorScheme.onSurface.withOpacity(0.6),
+        selectedLabelStyle: theme.bottomNavigationBarTheme.selectedLabelStyle,
+        unselectedLabelStyle: theme.bottomNavigationBarTheme.unselectedLabelStyle,
         type: BottomNavigationBarType.fixed,
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home),
-              label: "Home"
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: "Home",
           ),
-          BottomNavigationBarItem(icon: Icon(Icons.explore),
-              label: "Explore"),
-          BottomNavigationBarItem(icon: Icon(Icons.add_circle),
-              label: "Create"),
-          BottomNavigationBarItem(icon: Icon(Icons.collections),
-              label: "Collection"),
-          BottomNavigationBarItem(icon: Icon(Icons.person),label: "Profile")
+          BottomNavigationBarItem(
+            icon: Icon(Icons.explore),
+            label: "Explore",
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.add_circle),
+            label: "Create",
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.collections),
+            label: "Collection",
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: "Profile",
+          ),
         ],
         currentIndex: _selectedIndex,
-        onTap: (index){
+        onTap: (index) {
           setState(() {
-            _selectedIndex= index;
+            _selectedIndex = index;
           });
         },
-
       ),
       body: lstBottomScreen[_selectedIndex],
     );

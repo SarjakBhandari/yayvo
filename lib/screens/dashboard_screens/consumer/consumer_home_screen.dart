@@ -10,7 +10,9 @@ class ConsumerHomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Single dummy product adapted for SentimentCard
+    final theme = Theme.of(context);
+
+    // Dummy products
     final List<Map<String, dynamic>> mockProducts = [
       {
         "id": "1",
@@ -18,8 +20,8 @@ class ConsumerHomeScreen extends StatelessWidget {
         "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=600&h=600&fit=crop",
         "title": "Cozy Beauty Café",
         "emotions": [
-          {"emotion": "Calm", "emoji": "😌"},
-          {"emotion": "Cozy", "emoji": "🏠"},
+          {"emotion": "Calm", "icon": "assets/icons/calm.png"},
+          {"emotion": "Cozy", "icon": "assets/icons/house.png"},
         ],
         "sentimentSummary": "The most calming atmosphere with good makeup.",
         "retailerName": "Cozy Beauty Café",
@@ -28,38 +30,7 @@ class ConsumerHomeScreen extends StatelessWidget {
         "likes": 5,
         "saved": false,
       },
-      {
-        "id": "1",
-        "imageUrl":
-        "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=600&h=600&fit=crop",
-        "title": "Cozy Beauty Café",
-        "emotions": [
-          {"emotion": "Calm", "emoji": "😌"},
-          {"emotion": "Cozy", "emoji": "🏠"},
-        ],
-        "sentimentSummary": "The most calming atmosphere with good makeup.",
-        "retailerName": "Cozy Beauty Café",
-        "retailerAvatar":
-        "https://images.unsplash.com/photo-1551218808-94e220e084d2?w=100&h=100&fit=crop",
-        "likes": 5,
-        "saved": false,
-      },
-      {
-        "id": "1",
-        "imageUrl":
-        "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=600&h=600&fit=crop",
-        "title": "Cozy Beauty Café",
-        "emotions": [
-          {"emotion": "Calm", "emoji": "😌"},
-          {"emotion": "Cozy", "emoji": "🏠"},
-        ],
-        "sentimentSummary": "The most calming atmosphere with good makeup.",
-        "retailerName": "Cozy Beauty Café",
-        "retailerAvatar":
-        "https://images.unsplash.com/photo-1551218808-94e220e084d2?w=100&h=100&fit=crop",
-        "likes": 5,
-        "saved": false,
-      },
+      // Add more products here...
     ];
 
     // Dummy filters
@@ -80,9 +51,9 @@ class ConsumerHomeScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                color: Theme.of(context).cardColor,
-                border: const Border(
-                  bottom: BorderSide(color: Colors.grey),
+                color: theme.cardColor,
+                border: Border(
+                  bottom: BorderSide(color: theme.dividerColor),
                 ),
               ),
               child: Row(
@@ -90,12 +61,13 @@ class ConsumerHomeScreen extends StatelessWidget {
                 children: [
                   MyLogo(size: 40, radius: 12),
                   IconButton(
-                    icon: const Icon(Icons.notifications),
+                    icon: Icon(Icons.notifications,
+                        color: theme.colorScheme.onBackground),
                     onPressed: () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => NotificationsScreen(),
+                          builder: (context) => const NotificationsScreen(),
                         ),
                       );
                     },
@@ -113,6 +85,9 @@ class ConsumerHomeScreen extends StatelessWidget {
                 itemCount: filters.length,
                 itemBuilder: (context, index) {
                   final filter = filters[index];
+                  final iconPath = filter["icon"] ?? "";
+                  final label = filter["label"] ?? "Unknown";
+
                   return GestureDetector(
                     onTap: () {
                       showMySnackBar(
@@ -126,16 +101,21 @@ class ConsumerHomeScreen extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 12, vertical: 8),
                       decoration: BoxDecoration(
-                        color: Colors.grey.shade200,
+                        color: theme.chipTheme.backgroundColor ??
+                            theme.colorScheme.surfaceVariant,
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Row(
                         children: [
-                          Image.asset(filter["icon"], height: 20, width: 20),
+                          iconPath.isNotEmpty
+                              ? Image.asset(iconPath, height: 20, width: 20)
+                              : const Icon(Icons.sentiment_satisfied),
                           const SizedBox(width: 6),
                           Text(
-                            filter["label"],
-                            style: TextStyle(color: Colors.grey.shade800),
+                            label,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: theme.colorScheme.onBackground,
+                            ),
                           ),
                         ],
                       ),
@@ -153,22 +133,26 @@ class ConsumerHomeScreen extends StatelessWidget {
               itemCount: mockProducts.length,
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: MediaQuery.of(context).size.width > 800 ? 2 : 1,
-                crossAxisSpacing: 50,
-                mainAxisSpacing: 50,
-                childAspectRatio: 0.71, // tweak for card proportions
+                crossAxisSpacing: 20,
+                mainAxisSpacing: 20,
+                childAspectRatio: 0.62,
               ),
               itemBuilder: (context, index) {
                 final product = mockProducts[index];
+
                 return SentimentCard(
-                  id: product["id"],
-                  imageUrl: product["imageUrl"],
-                  title: product["title"],
-                  retailerName: product["retailerName"],
-                  retailerAvatar: product["retailerAvatar"],
-                  emotions: List<Map<String, String>>.from(product["emotions"]),
-                  sentimentSummary: product["sentimentSummary"],
-                  likes: product["likes"],
-                  saved: product["saved"],
+                  id: product["id"] ?? "",
+                  imageUrl: product["imageUrl"] ?? "",
+                  title: product["title"] ?? "Untitled",
+                  retailerName: product["retailerName"] ?? "Unknown Retailer",
+                  retailerAvatar: product["retailerAvatar"] ?? "",
+                  emotions: product["emotions"] != null
+                      ? List<Map<String, String>>.from(product["emotions"])
+                      : const [],
+                  sentimentSummary:
+                  product["sentimentSummary"] ?? "No summary available",
+                  likes: product["likes"] ?? 0,
+                  saved: product["saved"] ?? false,
                 );
               },
             ),
