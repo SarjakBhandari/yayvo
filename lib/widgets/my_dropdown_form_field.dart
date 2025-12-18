@@ -20,27 +20,65 @@ class MyDropdownButtonFormField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return DropdownButtonFormField<String>(
       value: value,
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: const TextStyle(color: Colors.black),
-        prefixIcon: Icon(prefixIcon, color: Colors.black),
+        labelStyle: theme.textTheme.bodyMedium?.copyWith(
+          color: theme.colorScheme.onSurface.withOpacity(0.8),
+        ),
+        prefixIcon: Icon(prefixIcon, color: theme.colorScheme.primary),
+        filled: true,
+        fillColor: theme.inputDecorationTheme.fillColor ??
+            theme.colorScheme.surfaceVariant,
+        contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: Colors.black),
+          borderSide: BorderSide(
+            color: theme.dividerColor,
+            width: 1.2,
+          ),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: Colors.blueAccent),
+          borderSide: BorderSide(
+            color: theme.colorScheme.primary,
+            width: 1.5,
+          ),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(
+            color: theme.colorScheme.error,
+            width: 1.5,
+          ),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(
+            color: theme.colorScheme.error,
+            width: 1.5,
+          ),
         ),
       ),
-      dropdownColor: const Color.fromARGB(255, 40, 40, 40),
-      style: const TextStyle(color: Colors.black),
+      dropdownColor: theme.dropdownMenuTheme.menuStyle?.backgroundColor
+          ?.resolve({}) ??
+          theme.colorScheme.surface,
+      style: theme.dropdownMenuTheme.textStyle ??
+          theme.textTheme.bodyMedium?.copyWith(
+            color: theme.colorScheme.onSurface,
+          ),
       items: items.map((item) {
         return DropdownMenuItem(
           value: item,
-          child: Text(item),
+          child: Text(
+            item,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurface,
+            ),
+          ),
         );
       }).toList(),
       onChanged: onChanged,

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:yayvo/screens/onboarding/ready.onboarding.screen.dart';
+import 'package:yayvo/screens/onboarding/ready_onboarding_screen.dart';
 import 'package:yayvo/widgets/my_button.dart';
 
 import '../../widgets/followers_card.dart';
@@ -12,22 +12,22 @@ class FollowSuggestionsScreen extends StatefulWidget {
 }
 
 class _FollowSuggestionsScreenState extends State<FollowSuggestionsScreen> {
-
-  //sample
+  // sample
   final List<Map<String, String>> suggestions = [
     {
       "id": "1",
       "name": "Minimal Living Co.",
       "type": "Retailer",
-      "image": "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=200&h=200&fit=crop"
+      "image":
+      "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=200&h=200&fit=crop"
     },
     {
       "id": "2",
       "name": "Urban Wellness",
       "type": "Consumer",
-      "image": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&h=200&fit=crop"
+      "image":
+      "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&h=200&fit=crop"
     },
-
   ];
 
   final List<String> following = [];
@@ -57,8 +57,10 @@ class _FollowSuggestionsScreenState extends State<FollowSuggestionsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
@@ -68,19 +70,18 @@ class _FollowSuggestionsScreenState extends State<FollowSuggestionsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       "Follow & Connect",
-                      style: TextStyle(
-                        fontSize: 22,
+                      style: theme.textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.bold,
+                        color: theme.colorScheme.onBackground,
                       ),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       "Discover retailers and consumers",
-                      style: TextStyle(
-                        color: Colors.grey.shade600,
-                        fontSize: 14,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurface.withOpacity(0.7),
                       ),
                     ),
                     const SizedBox(height: 24),
@@ -90,14 +91,16 @@ class _FollowSuggestionsScreenState extends State<FollowSuggestionsScreen> {
                         separatorBuilder: (_, __) => const SizedBox(height: 12),
                         itemBuilder: (context, index) {
                           final suggestion = suggestions[index];
-                          final isFollowing = following.contains(suggestion["id"]);
+                          final isFollowing =
+                          following.contains(suggestion["id"]);
                           return FollowSuggestionCard(
                             id: suggestion["id"]!,
                             name: suggestion["name"]!,
                             type: suggestion["type"]!,
                             imageUrl: suggestion["image"],
                             isFollowing: isFollowing,
-                            onToggleFollow: () => toggleFollow(suggestion["id"]!),
+                            onToggleFollow: () =>
+                                toggleFollow(suggestion["id"]!),
                           );
                         },
                       ),

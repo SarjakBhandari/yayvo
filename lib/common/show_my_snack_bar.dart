@@ -7,23 +7,33 @@ void showMySnackBar({
   required String message,
   required SnackBarStatus status,
 }) {
-  // Pick color based on status
-  Color backgroundColor;
+  final theme = Theme.of(context);
+
+  // Pick colors from the app theme
+  late Color backgroundColor;
+  late Color textColor;
+
   switch (status) {
     case SnackBarStatus.success:
-      backgroundColor = Colors.green;
+      backgroundColor = theme.colorScheme.primaryContainer;
+      textColor = theme.colorScheme.onPrimaryContainer;
       break;
     case SnackBarStatus.warning:
-      backgroundColor = Colors.yellow.shade700;
+      backgroundColor = theme.colorScheme.tertiaryContainer;
+      textColor = theme.colorScheme.onTertiaryContainer;
       break;
     case SnackBarStatus.error:
-      backgroundColor = Colors.red;
+      backgroundColor = theme.colorScheme.errorContainer;
+      textColor = theme.colorScheme.onErrorContainer;
       break;
   }
 
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
-      content: Text(message),
+      content: Text(
+        message,
+        style: TextStyle(color: textColor),
+      ),
       duration: const Duration(seconds: 4),
       backgroundColor: backgroundColor,
       behavior: SnackBarBehavior.floating,

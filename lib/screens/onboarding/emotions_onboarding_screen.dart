@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:yayvo/screens/onboarding/follower.onboarding.screen.dart';
+import 'package:yayvo/screens/onboarding/follower_onboarding_screen.dart';
 import 'package:yayvo/widgets/my_button.dart';
 
 class EmotionPreferencesScreen extends StatefulWidget {
@@ -23,10 +23,8 @@ class _EmotionPreferencesScreenState extends State<EmotionPreferencesScreen> {
   void toggleEmotion(String emotion) {
     setState(() {
       if (emotionPreferences.contains(emotion)) {
-        // remove if already selected
         emotionPreferences.remove(emotion);
       } else {
-        // add to end of list (priority order)
         emotionPreferences.add(emotion);
       }
     });
@@ -34,8 +32,10 @@ class _EmotionPreferencesScreenState extends State<EmotionPreferencesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
@@ -45,19 +45,18 @@ class _EmotionPreferencesScreenState extends State<EmotionPreferencesScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       "What speaks to you?",
-                      style: TextStyle(
-                        fontSize: 22,
+                      style: theme.textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.bold,
+                        color: theme.colorScheme.onBackground,
                       ),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       "Choose your emotional preferences in priority order",
-                      style: TextStyle(
-                        color: Colors.grey.shade600,
-                        fontSize: 14,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurface.withOpacity(0.7),
                       ),
                     ),
                     const SizedBox(height: 24),
@@ -87,13 +86,13 @@ class _EmotionPreferencesScreenState extends State<EmotionPreferencesScreen> {
                                 borderRadius: BorderRadius.circular(16),
                                 border: Border.all(
                                   color: isSelected
-                                      ? Theme.of(context).colorScheme.primary
-                                      : Colors.grey.shade300,
+                                      ? theme.colorScheme.primary
+                                      : theme.dividerColor,
                                   width: 2,
                                 ),
                                 color: isSelected
-                                    ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
-                                    : Theme.of(context).cardColor,
+                                    ? theme.colorScheme.primary.withOpacity(0.1)
+                                    : theme.cardColor,
                               ),
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
@@ -107,11 +106,11 @@ class _EmotionPreferencesScreenState extends State<EmotionPreferencesScreen> {
                                   const SizedBox(height: 8),
                                   Text(
                                     name,
-                                    style: TextStyle(
+                                    style: theme.textTheme.bodyMedium?.copyWith(
                                       fontSize: 14,
                                       color: isSelected
-                                          ? Theme.of(context).colorScheme.primary
-                                          : Colors.grey.shade800,
+                                          ? theme.colorScheme.primary
+                                          : theme.colorScheme.onSurface,
                                     ),
                                   ),
                                   if (isSelected)
@@ -119,9 +118,9 @@ class _EmotionPreferencesScreenState extends State<EmotionPreferencesScreen> {
                                       padding: const EdgeInsets.only(top: 4),
                                       child: Text(
                                         "Priority ${priorityIndex + 1}",
-                                        style: TextStyle(
+                                        style: theme.textTheme.bodySmall?.copyWith(
                                           fontSize: 12,
-                                          color: Theme.of(context).colorScheme.primary,
+                                          color: theme.colorScheme.primary,
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
@@ -140,15 +139,13 @@ class _EmotionPreferencesScreenState extends State<EmotionPreferencesScreen> {
                 width: double.infinity,
                 height: 45,
                 child: MyButton(
-                  onPressed: (){
-                    setState(() {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const FollowSuggestionsScreen(),
-                        ),
-                      );
-                    });
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const FollowSuggestionsScreen(),
+                      ),
+                    );
                   },
                   text: "Next",
                 ),

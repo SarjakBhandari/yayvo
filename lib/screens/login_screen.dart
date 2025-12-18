@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:yayvo/common/show_my_snack_bar.dart';
-import 'package:yayvo/screens/onboarding/interests.onboarding.screen.dart';
-import 'package:yayvo/screens/onboarding/welcome.screen.dart';
+import 'package:yayvo/screens/onboarding/interests_onboarding_screen.dart';
 import 'package:yayvo/widgets/my_button.dart';
 import 'package:yayvo/widgets/my_logo.dart';
 import 'package:yayvo/widgets/my_text_form_field.dart';
+
+import 'onboarding/welcome_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -21,32 +22,32 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: Center(
         child: SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.all(15.0),
+            padding: const EdgeInsets.all(20.0),
             child: Column(
               children: [
                 MyLogo(size: 100, radius: 24),
 
                 const SizedBox(height: 40),
-                const Text(
+                Text(
                   "Welcome Back!",
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 20,
+                  style: theme.textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.bold,
+                    color: theme.colorScheme.onBackground,
                   ),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 15),
-                const Text(
+                Text(
                   "Please login with your credentials",
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 15,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurface.withOpacity(0.8),
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -83,7 +84,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             _obscurePassword
                                 ? Icons.visibility_off
                                 : Icons.visibility,
-                            color: Colors.black,
+                            color: theme.iconTheme.color,
                           ),
                           onPressed: () {
                             setState(() {
@@ -114,16 +115,16 @@ class _LoginScreenState extends State<LoginScreen> {
                       status: SnackBarStatus.warning,
                     );
                   },
-                  child: const Align(
+                  child: Align(
                     alignment: Alignment.centerRight,
                     child: Padding(
-                      padding: EdgeInsets.only(right: 20),
+                      padding: const EdgeInsets.only(right: 20),
                       child: Text(
                         "Forgot Password?",
-                        style: TextStyle(
-                          color: Colors.blueAccent,
-                          fontSize: 14,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.primary,
                           decoration: TextDecoration.underline,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ),
@@ -146,7 +147,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => InterestsScreen(),
+                            builder: (context) => const InterestsScreen(),
                           ),
                         );
                       }
@@ -166,16 +167,18 @@ class _LoginScreenState extends State<LoginScreen> {
                     );
                   },
                   child: RichText(
-                    text: const TextSpan(
+                    text: TextSpan(
                       text: "Don't have an Account? ",
-                      style: TextStyle(color: Colors.black, fontSize: 14),
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurface,
+                      ),
                       children: [
                         TextSpan(
                           text: "Sign Up",
-                          style: TextStyle(
+                          style: theme.textTheme.bodyMedium?.copyWith(
                             fontWeight: FontWeight.bold,
                             decoration: TextDecoration.underline,
-                            color: Colors.blueAccent,
+                            color: theme.colorScheme.primary,
                           ),
                         ),
                       ],
