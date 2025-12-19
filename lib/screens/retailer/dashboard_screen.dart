@@ -1,9 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:yayvo/screens/dashboard_screens/consumer/add_review_screen.dart';
-import 'package:yayvo/screens/dashboard_screens/consumer/collections_screen.dart';
-import 'package:yayvo/screens/dashboard_screens/consumer/consumer_home_screen.dart';
-import 'package:yayvo/screens/dashboard_screens/consumer/explore_screen.dart';
-import 'package:yayvo/screens/dashboard_screens/consumer/profile_screen.dart';
 
 class HomeFeed extends StatefulWidget {
   const HomeFeed({super.key});
@@ -16,11 +11,7 @@ class _HomeFeedState extends State<HomeFeed> {
   int _selectedIndex = 0;
 
   final List<Widget> lstBottomScreen = const [
-    ConsumerHomeScreen(),
-    ExploreScreen(),
-    AddReviewScreen(),
-    CollectionsScreen(),
-    ProfileScreen(),
+
   ];
 
   @override
@@ -54,8 +45,8 @@ class _HomeFeedState extends State<HomeFeed> {
             label: "Create",
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.collections),
-            label: "Collection",
+            icon: Icon(Icons.storage),
+            label: "My Products",
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person),
