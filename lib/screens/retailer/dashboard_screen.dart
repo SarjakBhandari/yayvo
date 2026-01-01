@@ -1,17 +1,22 @@
 import 'package:flutter/material.dart';
 
-class HomeFeed extends StatefulWidget {
-  const HomeFeed({super.key});
+class HomeFeedRetailer extends StatefulWidget {
+  const HomeFeedRetailer({super.key});
 
   @override
-  State<HomeFeed> createState() => _HomeFeedState();
+  State<HomeFeedRetailer> createState() => _HomeFeedRetailerState();
 }
 
-class _HomeFeedState extends State<HomeFeed> {
+class _HomeFeedRetailerState extends State<HomeFeedRetailer> {
   int _selectedIndex = 0;
 
+  // Provide a widget for each BottomNavigationBarItem
   final List<Widget> lstBottomScreen = const [
-
+    Center(child: Text("Home Screen")),
+    Center(child: Text("Explore Screen")),
+    Center(child: Text("Create Screen")),
+    Center(child: Text("My Products Screen")),
+    Center(child: Text("Profile Screen")),
   ];
 
   @override

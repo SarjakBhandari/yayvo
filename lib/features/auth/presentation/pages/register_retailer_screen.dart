@@ -5,7 +5,7 @@ import 'package:yayvo/core/widgets/my_button.dart';
 import 'package:yayvo/core/widgets/my_logo.dart';
 import 'package:yayvo/core/widgets/my_text_form_field.dart';
 
-import '../core/widgets/my_dropdown_form_field.dart';
+import '../../../../core/widgets/my_dropdown_form_field.dart';
 class RetailerRegistrationScreen extends StatefulWidget {
   const RetailerRegistrationScreen({super.key});
 

@@ -16,17 +16,17 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
 
   final List<Map<String, String>> pages = [
     {
-      "image": "assets/icons/house.png",
+      "image": "assets/icons/sentiments/house.png",
       "title": "Discover Lifestyle",
       "description": "Explore emotions through curated content and experiences."
     },
     {
-      "image": "assets/icons/beauty.png",
+      "image": "assets/icons/category/beauty.png",
       "title": "Personalized Feed",
       "description": "Get recommendations tailored to your mood and interests."
     },
     {
-      "image": "assets/icons/joy.png",
+      "image": "assets/icons/sentiments/joy.png",
       "title": "Connect & Share",
       "description": "Engage with communities and share your lifestyle stories."
     },
