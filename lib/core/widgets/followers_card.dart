@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:yayvo/widgets/my_button.dart';
+import 'package:yayvo/core/widgets/my_button.dart';
 
 class FollowSuggestionCard extends StatelessWidget {
   final String id;

@@ -1,9 +1,9 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:yayvo/widgets/my_button.dart';
-import 'package:yayvo/widgets/my_text_form_field.dart';
-import 'package:yayvo/common/show_my_snack_bar.dart';
+import 'package:yayvo/core/widgets/my_button.dart';
+import 'package:yayvo/core/widgets/my_text_form_field.dart';
+import 'package:yayvo/core/utils/show_my_snack_bar.dart';
 
 class AddReviewScreen extends StatefulWidget {
   const AddReviewScreen({super.key});

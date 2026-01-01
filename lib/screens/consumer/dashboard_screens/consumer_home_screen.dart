@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:yayvo/screens/notifications_screen.dart';
 
-import '../../../common/show_my_snack_bar.dart';
-import '../../../widgets/my_logo.dart';
-import '../../../widgets/my_sentiment_card.dart';
+import '../../../core/utils/show_my_snack_bar.dart';
+import '../../../core/widgets/my_logo.dart';
+import '../../../core/widgets/my_sentiment_card.dart';
 
 class ConsumerHomeScreen extends StatelessWidget {
   const ConsumerHomeScreen({super.key});

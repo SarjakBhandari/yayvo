@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:yayvo/screens/login_screen.dart';
+import 'package:yayvo/features/auth/presentation/pages/login_page.dart';
 import 'package:yayvo/screens/register_consumer_screen.dart';
 import 'package:yayvo/screens/register_retailer_screen.dart';
-import 'package:yayvo/widgets/my_button.dart';
-import 'package:yayvo/widgets/my_logo.dart';
+import 'package:yayvo/core/widgets/my_button.dart';
+import 'package:yayvo/core/widgets/my_logo.dart';
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});

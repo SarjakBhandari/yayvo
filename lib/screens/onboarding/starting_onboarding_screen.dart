@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:yayvo/screens/onboarding/welcome_screen.dart';
-import '../../widgets/onboarding.widget.dart';
-import '../../widgets/my_button.dart';
+import '../../core/widgets/onboarding.widget.dart';
+import '../../core/widgets/my_button.dart';
 
 class OnboardingFlow extends StatefulWidget {
   const OnboardingFlow({super.key});
