@@ -8,6 +8,7 @@ import 'package:yayvo/core/widgets/my_logo.dart';
 import 'package:yayvo/core/widgets/my_text_form_field.dart';
 import 'package:yayvo/features/auth/presentation/state/auth_state.dart';
 import 'package:yayvo/features/auth/data/models/user_type.dart';
+import 'package:yayvo/screens/retailer/dashboard_screen.dart';
 
 import '../../../onboarding/presentation/pages/welcome_screen.dart';
 
@@ -29,7 +30,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final theme = Theme.of(context);
     final authState = ref.watch(authViewModelProvider);
 
-    // Listen for state changes
     ref.listen<AuthState>(authViewModelProvider, (prev, next) {
       if (next.status == AuthStatus.error && next.errorMessage != null) {
         showMySnackBar(
@@ -38,18 +38,29 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           status: SnackBarStatus.error,
         );
       }
-      if (next.status == AuthStatus.authenticated) {
+
+      if (next.status == AuthStatus.authenticated && next.user != null) {
         showMySnackBar(
           context: context,
           message: "Login successful!",
           status: SnackBarStatus.success,
         );
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const InterestsScreen()),
-        );
+
+        // Check userType and navigate accordingly
+        if (next.user!.userType == UserType.consumer) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const InterestsScreen()),
+          );
+        } else if (next.user!.userType == UserType.retailer) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const HomeFeedRetailer()),
+          );
+        }
       }
     });
+
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
