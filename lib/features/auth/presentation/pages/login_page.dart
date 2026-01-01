@@ -5,7 +5,7 @@ import 'package:yayvo/core/widgets/my_button.dart';
 import 'package:yayvo/core/widgets/my_logo.dart';
 import 'package:yayvo/core/widgets/my_text_form_field.dart';
 
-import '../../../../screens/onboarding/welcome_screen.dart';
+import '../../../onboarding/presentation/pages/welcome_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
