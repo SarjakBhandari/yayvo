@@ -2,6 +2,9 @@ import 'package:hive/hive.dart';
 import 'package:uuid/uuid.dart';
 import 'package:yayvo/core/constants/hive_table_constants.dart';
 import 'package:yayvo/features/auth/domain/entities/auth_entity.dart';
+import 'package:yayvo/features/auth/data/models/consumer_hive_model.dart';
+import 'package:yayvo/features/auth/data/models/retailer_hive_model.dart';
+import 'package:yayvo/features/auth/data/models/user_type.dart'; // ✅ unified UserType
 
 part 'auth_hive_model.g.dart';
 
@@ -10,57 +13,57 @@ class AuthHiveModel extends HiveObject {
   @HiveField(0)
   final String? authId;
 
+  /// store userType as int (0 = consumer, 1 = retailer)
   @HiveField(1)
-  final String fullName;
+  final int userTypeIndex;
 
   @HiveField(2)
   final String email;
 
   @HiveField(3)
-  final String username;
+  final String password;
 
   @HiveField(4)
-  final String? password;
+  final ConsumerHiveModel? consumer;
 
   @HiveField(5)
-  final String? phoneNumber;
-
-  @HiveField(6)
-  final String? profilePicture;
+  final RetailerHiveModel? retailer;
 
   AuthHiveModel({
     String? authId,
-    required this.fullName,
+    required this.userTypeIndex,
     required this.email,
-    required this.username,
-    this.password,
-    this.phoneNumber,
-    this.profilePicture,
+    required this.password,
+    this.consumer,
+    this.retailer,
   }) : authId = authId ?? const Uuid().v4();
 
-  // To Entity
+  // ✅ Convert to domain entity
   AuthEntity toEntity() {
+    final type = userTypeIndex == 0 ? UserType.consumer : UserType.retailer;
     return AuthEntity(
       authId: authId,
-      fullName: fullName,
+      userType: type,
       email: email,
-      username: username,
       password: password,
-      phoneNumber: phoneNumber,
-      profilePicture: profilePicture,
+      consumer: consumer?.toEntity(),
+      retailer: retailer?.toEntity(),
     );
   }
 
-  // From Entity
+
   factory AuthHiveModel.fromEntity(AuthEntity entity) {
     return AuthHiveModel(
       authId: entity.authId,
-      fullName: entity.fullName,
+      userTypeIndex: entity.userType == UserType.consumer ? 0 : 1,
       email: entity.email,
-      username: entity.username,
       password: entity.password,
-      phoneNumber: entity.phoneNumber,
-      profilePicture: entity.profilePicture,
+      consumer: entity.consumer != null
+          ? ConsumerHiveModel.fromEntity(entity.consumer!)
+          : null,
+      retailer: entity.retailer != null
+          ? RetailerHiveModel.fromEntity(entity.retailer!)
+          : null,
     );
   }
 }

@@ -3,7 +3,6 @@ import 'package:equatable/equatable.dart';
 class ConsumerEntity extends Equatable {
   final String? authId;
   final String fullName;
-  final String email;
   final String username;
   final String? phoneNumber;
   final String? dob;
@@ -14,7 +13,6 @@ class ConsumerEntity extends Equatable {
   const ConsumerEntity({
     this.authId,
     required this.fullName,
-    required this.email,
     required this.username,
     this.phoneNumber,
     this.dob,
@@ -27,7 +25,6 @@ class ConsumerEntity extends Equatable {
   List<Object?> get props => [
     authId,
     fullName,
-    email,
     username,
     phoneNumber,
     dob,
@@ -36,4 +33,3 @@ class ConsumerEntity extends Equatable {
     profilePicture,
   ];
 }
-

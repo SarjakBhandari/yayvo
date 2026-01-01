@@ -4,7 +4,6 @@ class RetailerEntity extends Equatable {
   final String? authId;
   final String ownerName;
   final String organizationName;
-  final String email;
   final String username;
   final String? phoneNumber;
   final String? dateOfEstablishment;
@@ -15,7 +14,6 @@ class RetailerEntity extends Equatable {
     this.authId,
     required this.ownerName,
     required this.organizationName,
-    required this.email,
     required this.username,
     this.phoneNumber,
     this.dateOfEstablishment,
@@ -28,7 +26,6 @@ class RetailerEntity extends Equatable {
     authId,
     ownerName,
     organizationName,
-    email,
     username,
     phoneNumber,
     dateOfEstablishment,

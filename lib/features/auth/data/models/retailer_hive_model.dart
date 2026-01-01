@@ -17,28 +17,24 @@ class RetailerHiveModel extends HiveObject {
   final String organizationName;
 
   @HiveField(3)
-  final String email;
-
-  @HiveField(4)
   final String username;
 
-  @HiveField(5)
+  @HiveField(4)
   final String? phoneNumber;
 
-  @HiveField(6)
+  @HiveField(5)
   final String? dateOfEstablishment;
 
-  @HiveField(7)
+  @HiveField(6)
   final String? country;
 
-  @HiveField(8)
+  @HiveField(7)
   final String? profilePicture;
 
   RetailerHiveModel({
     String? authId,
     required this.ownerName,
     required this.organizationName,
-    required this.email,
     required this.username,
     this.phoneNumber,
     this.dateOfEstablishment,
@@ -46,13 +42,11 @@ class RetailerHiveModel extends HiveObject {
     this.profilePicture,
   }) : authId = authId ?? const Uuid().v4();
 
-  // To Entity
   RetailerEntity toEntity() {
     return RetailerEntity(
       authId: authId,
       ownerName: ownerName,
       organizationName: organizationName,
-      email: email,
       username: username,
       phoneNumber: phoneNumber,
       dateOfEstablishment: dateOfEstablishment,
@@ -61,22 +55,16 @@ class RetailerHiveModel extends HiveObject {
     );
   }
 
-  // From Entity
   factory RetailerHiveModel.fromEntity(RetailerEntity entity) {
     return RetailerHiveModel(
       authId: entity.authId,
       ownerName: entity.ownerName,
       organizationName: entity.organizationName,
-      email: entity.email,
       username: entity.username,
       phoneNumber: entity.phoneNumber,
       dateOfEstablishment: entity.dateOfEstablishment,
       country: entity.country,
       profilePicture: entity.profilePicture,
     );
-  }
-
-  static List<RetailerEntity> toEntityList(List<RetailerHiveModel> models) {
-    return models.map((m) => m.toEntity()).toList();
   }
 }
