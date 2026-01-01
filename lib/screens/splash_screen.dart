@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:yayvo/screens/onboarding/starting_onboarding_screen.dart';
-import 'package:yayvo/widgets/my_logo.dart';
+import 'package:yayvo/features/onboarding/presentation/pages/starting_onboarding_screen.dart';
+import 'package:yayvo/core/widgets/my_logo.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});

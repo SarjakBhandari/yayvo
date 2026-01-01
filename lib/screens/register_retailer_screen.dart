@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:yayvo/common/show_my_snack_bar.dart';
-import 'package:yayvo/screens/login_screen.dart';
-import 'package:yayvo/widgets/my_button.dart';
-import 'package:yayvo/widgets/my_logo.dart';
-import 'package:yayvo/widgets/my_text_form_field.dart';
+import 'package:yayvo/core/utils/show_my_snack_bar.dart';
+import 'package:yayvo/features/auth/presentation/pages/login_page.dart';
+import 'package:yayvo/core/widgets/my_button.dart';
+import 'package:yayvo/core/widgets/my_logo.dart';
+import 'package:yayvo/core/widgets/my_text_form_field.dart';
 
-import '../widgets/my_dropdown_form_field.dart';
+import '../core/widgets/my_dropdown_form_field.dart';
 class RetailerRegistrationScreen extends StatefulWidget {
   const RetailerRegistrationScreen({super.key});
 
