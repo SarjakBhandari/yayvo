@@ -1,20 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yayvo/core/utils/show_my_snack_bar.dart';
+import 'package:yayvo/features/auth/presentation/view_model/auth_viewmodel.dart';
 import 'package:yayvo/screens/onboarding/interests_onboarding_screen.dart';
 import 'package:yayvo/core/widgets/my_button.dart';
 import 'package:yayvo/core/widgets/my_logo.dart';
 import 'package:yayvo/core/widgets/my_text_form_field.dart';
+import 'package:yayvo/features/auth/presentation/state/auth_state.dart';
+import 'package:yayvo/features/auth/data/models/user_type.dart';
 
 import '../../../onboarding/presentation/pages/welcome_screen.dart';
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
@@ -23,6 +27,29 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final authState = ref.watch(authViewModelProvider);
+
+    // Listen for state changes
+    ref.listen<AuthState>(authViewModelProvider, (prev, next) {
+      if (next.status == AuthStatus.error && next.errorMessage != null) {
+        showMySnackBar(
+          context: context,
+          message: next.errorMessage!,
+          status: SnackBarStatus.error,
+        );
+      }
+      if (next.status == AuthStatus.authenticated) {
+        showMySnackBar(
+          context: context,
+          message: "Login successful!",
+          status: SnackBarStatus.success,
+        );
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const InterestsScreen()),
+        );
+      }
+    });
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -106,31 +133,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
 
-                const SizedBox(height: 10),
-                GestureDetector(
-                  onTap: () {
-                    showMySnackBar(
-                      context: context,
-                      message: "Forgot Password tapped",
-                      status: SnackBarStatus.warning,
-                    );
-                  },
-                  child: Align(
-                    alignment: Alignment.centerRight,
-                    child: Padding(
-                      padding: const EdgeInsets.only(right: 20),
-                      child: Text(
-                        "Forgot Password?",
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.primary,
-                          decoration: TextDecoration.underline,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-
                 const SizedBox(height: 20),
                 SizedBox(
                   width: MediaQuery.of(context).size.width - 150,
@@ -138,21 +140,16 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: MyButton(
                     onPressed: () {
                       if (_formKey.currentState!.validate()) {
-                        showMySnackBar(
-                          context: context,
-                          message: "Logged In!",
-                          status: SnackBarStatus.success,
-                        );
-
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const InterestsScreen(),
-                          ),
+                        ref.read(authViewModelProvider.notifier).login(
+                          email: _emailController.text.trim(),
+                          password: _passwordController.text.trim(),
+                          userType: UserType.consumer, // or retailer
                         );
                       }
                     },
-                    text: "Sign In",
+                    text: authState.status == AuthStatus.loading
+                        ? "Signing In..."
+                        : "Sign In",
                   ),
                 ),
 
