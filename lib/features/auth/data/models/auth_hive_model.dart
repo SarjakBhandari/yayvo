@@ -4,7 +4,7 @@ import 'package:yayvo/core/constants/hive_table_constants.dart';
 import 'package:yayvo/features/auth/domain/entities/auth_entity.dart';
 import 'package:yayvo/features/auth/data/models/consumer_hive_model.dart';
 import 'package:yayvo/features/auth/data/models/retailer_hive_model.dart';
-import 'package:yayvo/features/auth/data/models/user_type.dart'; // ✅ unified UserType
+import 'package:yayvo/features/auth/data/models/user_type.dart';
 
 part 'auth_hive_model.g.dart';
 
