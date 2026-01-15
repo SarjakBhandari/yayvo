@@ -1,6 +1,9 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yayvo/core/utils/show_my_snack_bar.dart';
+import 'package:yayvo/features/auth/domain/entities/consumer_entity.dart';
 import 'package:yayvo/features/auth/presentation/view_model/auth_viewmodel.dart';
 import 'package:yayvo/features/auth/presentation/state/auth_state.dart';
 import 'package:yayvo/features/auth/domain/entities/auth_entity.dart';
@@ -277,23 +280,43 @@ class _ConsumerRegistrationScreenState
                         ],
                       ),
                     ),
-                    const SizedBox(height: 20),
                           SizedBox(
                             width: MediaQuery.of(context).size.width - 150,
                             height: 45,
                             child: MyButton(
                               onPressed: () {
                                 if (_formKey.currentState!.validate()) {
-                                  final user = AuthEntity(
+                                  // Build AuthEntity
+                                  final authEntity = AuthEntity(
                                     authId: null,
-                                    userType: UserType.consumer,
+                                    role: UserType.consumer,
                                     email: _emailController.text.trim(),
-                                    password: _passwordController.text.trim(),
-                                    consumer: null, // map ConsumerEntity if needed
+                                    passwordHash: _passwordController.text.trim(),
+                                    consumer: null, // linked via ConsumerEntity
                                     retailer: null,
                                   );
 
-                                  ref.read(authViewModelProvider.notifier).register(user);
+                                  // Auto-generate username from email prefix + random number
+                                  final emailFirstPart = _emailController.text.trim().split('@').first;
+                                  final randomNumber = Random().nextInt(9000) + 1000; // 1000–9999
+                                  final generatedUsername = "$emailFirstPart$randomNumber";
+
+                                  // Build ConsumerEntity from form fields
+                                  final consumerEntity = ConsumerEntity(
+                                    authId: null,
+                                    username: generatedUsername,
+                                    fullName: _nameController.text.trim(),
+                                    dob: _dobController.text.trim(),
+                                    gender: _gender,
+                                    country: _selectedCountry ?? "",
+                                    // add other fields if your ConsumerEntity requires them
+                                  );
+
+                                  // Call register with both entities
+                                  ref.read(authViewModelProvider.notifier).register(
+                                    authEntity,
+                                    consumerEntity,
+                                  );
                                 }
                               },
                               text: authState.status == AuthStatus.loading

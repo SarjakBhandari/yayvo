@@ -1,14 +1,14 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yayvo/features/auth/domain/entities/auth_entity.dart';
-import 'package:yayvo/features/auth/domain/usecases/logout.dart';
-import 'package:yayvo/features/auth/domain/usecases/register_usecase.dart';
+import 'package:yayvo/features/auth/domain/entities/consumer_entity.dart';
 import 'package:yayvo/features/auth/domain/usecases/get_current_user_usecase.dart';
-import 'package:yayvo/features/auth/domain/usecases/get_user_by_id_usecase.dart';
 import 'package:yayvo/features/auth/domain/usecases/get_user_by_email_usecase.dart';
-import 'package:yayvo/features/auth/domain/usecases/get_user_type_usecase.dart';
+import 'package:yayvo/features/auth/domain/usecases/get_user_by_id_usecase.dart';
+import 'package:yayvo/features/auth/domain/usecases/login_usecase.dart';
+import 'package:yayvo/features/auth/domain/usecases/logout_user_usecase.dart';
+import 'package:yayvo/features/auth/domain/usecases/register_user_usecase.dart';
 import 'package:yayvo/features/auth/presentation/state/auth_state.dart';
 import 'package:yayvo/features/auth/data/models/user_type.dart';
-import '../../domain/usecases/login_usecase.dart';
 
 /// Provider for AuthViewModel
 final authViewModelProvider = NotifierProvider<AuthViewModel, AuthState>(
@@ -17,31 +17,31 @@ final authViewModelProvider = NotifierProvider<AuthViewModel, AuthState>(
 
 /// ViewModel handling authentication logic
 class AuthViewModel extends Notifier<AuthState> {
-  late final RegisterUsecase _registerUsecase;
-  late final LoginUsecase _loginUsecase;
-  late final LogoutUsecase _logoutUsecase;
-  late final GetCurrentUserUsecase _getCurrentUserUsecase;
-  late final GetUserByIdUsecase _getUserByIdUsecase;
-  late final GetUserByEmailUsecase _getUserByEmailUsecase;
-  late final GetUserTypeUsecase _getUserTypeUsecase;
+  late final RegisterUser _registerUsecase;
+  late final LoginUser _loginUsecase;
+  late final LogoutUser _logoutUsecase;
+  late final GetCurrentUser _getCurrentUserUsecase;
+  late final GetUserById _getUserByIdUsecase;
+  late final GetUserByEmail _getUserByEmailUsecase;
 
   @override
   AuthState build() {
-    _registerUsecase = ref.read(registerUsecaseProvider);
-    _loginUsecase = ref.read(loginUsecaseProvider);
-    _logoutUsecase = ref.read(logoutUsecaseProvider);
-    _getCurrentUserUsecase = ref.read(getCurrentUserUsecaseProvider);
-    _getUserByIdUsecase = ref.read(getUserByIdUsecaseProvider);
-    _getUserByEmailUsecase = ref.read(getUserByEmailUsecaseProvider);
-    _getUserTypeUsecase = ref.read(getUserTypeUsecaseProvider);
+    _registerUsecase = ref.read(registerUserProvider);
+    _loginUsecase = ref.read(loginUserProvider);
+    _logoutUsecase = ref.read(logoutUserProvider);
+    _getCurrentUserUsecase = ref.read(getCurrentUserProvider);
+    _getUserByIdUsecase = ref.read(getUserByIdProvider);
+    _getUserByEmailUsecase = ref.read(getUserByEmailProvider);
     return const AuthState();
   }
 
   /// Register a new user
-  Future<void> register(AuthEntity user) async {
+  Future<void> register(AuthEntity authEntity, ConsumerEntity consumerEntity) async {
     state = state.copyWith(status: AuthStatus.loading);
 
-    final result = await _registerUsecase(RegisterParams(user));
+    final result = await _registerUsecase(
+      RegisterUserParams(authEntity: authEntity, consumerEntity: consumerEntity),
+    );
 
     result.fold(
           (failure) => state = state.copyWith(
@@ -61,8 +61,42 @@ class AuthViewModel extends Notifier<AuthState> {
     state = state.copyWith(status: AuthStatus.loading);
 
     final result = await _loginUsecase(
-      LoginParams(email: email, password: password, userType: userType),
+      LoginParams(email: email, passwordHash: password),
     );
+
+    result.fold(
+          (failure) => state = state.copyWith(
+        status: AuthStatus.error,
+        errorMessage: failure.message,
+      ),
+          (user) => state = state.copyWith(
+        status: AuthStatus.authenticated,
+        user: user),
+    );
+  }
+  /// Logout current user
+  Future<void> logout() async {
+    state = state.copyWith(status: AuthStatus.loading);
+
+    final result = await _logoutUsecase();
+
+    result.fold(
+          (failure) => state = state.copyWith(
+        status: AuthStatus.error,
+        errorMessage: failure.message,
+      ),
+          (_) => state = state.copyWith(
+        status: AuthStatus.unauthenticated,
+        user: null,
+      ),
+    );
+  }
+
+  /// Get current user
+  Future<void> getCurrentUser() async {
+    state = state.copyWith(status: AuthStatus.loading);
+
+    final result = await _getCurrentUserUsecase();
 
     result.fold(
           (failure) => state = state.copyWith(
@@ -76,26 +110,29 @@ class AuthViewModel extends Notifier<AuthState> {
     );
   }
 
-  /// Logout current user
-  Future<void> logout() async {
+  /// Get user by ID
+  Future<void> getUserById(String authId) async {
     state = state.copyWith(status: AuthStatus.loading);
 
-    final result = await _logoutUsecase();
+    final result = await _getUserByIdUsecase(authId);
 
     result.fold(
           (failure) => state = state.copyWith(
         status: AuthStatus.error,
         errorMessage: failure.message,
       ),
-          (_) => state = state.copyWith(status: AuthStatus.unauthenticated, user: null),
+          (user) => state = state.copyWith(
+        status: AuthStatus.authenticated,
+        user: user,
+      ),
     );
   }
 
-  /// Get current user
-  Future<void> getCurrentUser() async {
+  /// Get user by Email
+  Future<void> getUserByEmail(String email) async {
     state = state.copyWith(status: AuthStatus.loading);
 
-    final result = await _getCurrentUserUsecase();
+    final result = await _getUserByEmailUsecase(email); // 👈 correct, GetUserByEmail expects String
 
     result.fold(
           (failure) => state = state.copyWith(

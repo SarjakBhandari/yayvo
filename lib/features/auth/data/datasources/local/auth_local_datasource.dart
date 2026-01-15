@@ -6,26 +6,27 @@ import 'package:yayvo/features/auth/data/datasources/auth_datasource.dart';
 import 'package:yayvo/features/auth/data/models/auth_hive_model.dart';
 import 'package:yayvo/features/auth/data/models/consumer_hive_model.dart';
 import 'package:yayvo/features/auth/data/models/retailer_hive_model.dart';
-import 'package:yayvo/features/auth/data/models/user_type.dart'; // ✅ unified UserType
+import 'package:yayvo/features/auth/data/models/user_type.dart';
 
 final authLocalDatasourceProvider = Provider<AuthLocalDatasource>((ref) {
   final hiveService = ref.read(hiveServiceProvider);
   return AuthLocalDatasource(hiveService: hiveService);
 });
 
-class AuthLocalDatasource implements IAuthDataSource {
+class AuthLocalDatasource implements IAuthLocalDataSource {
   final HiveService _hiveService;
 
   AuthLocalDatasource({required HiveService hiveService})
       : _hiveService = hiveService;
 
+  // ---------- Auth ----------
   @override
   Future<AuthHiveModel> register(AuthHiveModel user) async {
     final savedAuth = await _hiveService.register(user);
 
-    if (user.userTypeIndex == 0 && user.consumer != null) {
+    if (user.role == UserType.consumer.name && user.consumer != null) {
       await _hiveService.registerConsumer(user.consumer!);
-    } else if (user.userTypeIndex == 1 && user.retailer != null) {
+    } else if (user.role == UserType.retailer.name && user.retailer != null) {
       await _hiveService.registerRetailer(user.retailer!);
     }
 
@@ -34,37 +35,35 @@ class AuthLocalDatasource implements IAuthDataSource {
 
   @override
   Future<AuthHiveModel?> login(
-      String email, String password, UserType userType) async {
+      String email,
+      String passwordHash
+      ) async {
     try {
-      return _hiveService.login(
-        email,
-        password,
-        userType == UserType.consumer ? 0 : 1,
-      );
+      return _hiveService.login(email, passwordHash);
     } catch (_) {
       return null;
     }
   }
 
   @override
-  Future<AuthHiveModel?> getUserById(String authId, UserType userType) async {
+  Future<AuthHiveModel?> getUserById(
+      String authId,
+      UserType userType,
+      ) async {
     try {
-      return _hiveService.getUserById(
-        authId,
-        userType == UserType.consumer ? 0 : 1,
-      );
+      return _hiveService.getUserById(authId, userType.name);
     } catch (_) {
       return null;
     }
   }
 
   @override
-  Future<AuthHiveModel?> getUserByEmail(String email, UserType userType) async {
+  Future<AuthHiveModel?> getUserByEmail(
+      String email,
+      UserType userType,
+      ) async {
     try {
-      return _hiveService.getUserByEmail(
-        email,
-        userType == UserType.consumer ? 0 : 1,
-      );
+      return _hiveService.getUserByEmail(email, userType.name);
     } catch (_) {
       return null;
     }
@@ -76,9 +75,9 @@ class AuthLocalDatasource implements IAuthDataSource {
       final updated = await _hiveService.updateUser(user);
 
       if (updated) {
-        if (user.userTypeIndex == 0 && user.consumer != null) {
+        if (user.role == UserType.consumer.name && user.consumer != null) {
           await _hiveService.registerConsumer(user.consumer!);
-        } else if (user.userTypeIndex == 1 && user.retailer != null) {
+        } else if (user.role == UserType.retailer.name && user.retailer != null) {
           await _hiveService.registerRetailer(user.retailer!);
         }
       }
@@ -90,12 +89,12 @@ class AuthLocalDatasource implements IAuthDataSource {
   }
 
   @override
-  Future<bool> deleteUser(String authId, UserType userType) async {
+  Future<bool> deleteUser(
+      String authId,
+      UserType userType,
+      ) async {
     try {
-      await _hiveService.deleteUser(
-        authId,
-        userType == UserType.consumer ? 0 : 1,
-      );
+      await _hiveService.deleteUser(authId, userType.name);
 
       if (userType == UserType.consumer) {
         final consumer = _hiveService.getConsumerById(authId);
@@ -103,7 +102,7 @@ class AuthLocalDatasource implements IAuthDataSource {
           await Hive.box<ConsumerHiveModel>(HiveTableConstants.consumerTable)
               .delete(authId);
         }
-      } else {
+      } else if (userType == UserType.retailer) {
         final retailer = _hiveService.getRetailerById(authId);
         if (retailer != null) {
           await Hive.box<RetailerHiveModel>(HiveTableConstants.retailerTable)
@@ -144,10 +143,42 @@ class AuthLocalDatasource implements IAuthDataSource {
       final box = Hive.box<AuthHiveModel>(HiveTableConstants.authTable);
       final user = box.get(authId);
       return user != null
-          ? (user.userTypeIndex == 0 ? UserType.consumer : UserType.retailer)
+          ? UserType.values.firstWhere((e) => e.name == user.role)
           : null;
     } catch (_) {
       return null;
     }
+  }
+
+  // ---------- Consumer ----------
+  @override
+  Future<ConsumerHiveModel> registerConsumer(ConsumerHiveModel consumer) async {
+    return await _hiveService.registerConsumer(consumer);
+  }
+
+  @override
+  ConsumerHiveModel? getConsumerById(String authId) {
+    return _hiveService.getConsumerById(authId);
+  }
+
+  @override
+  List<ConsumerHiveModel> getAllConsumers() {
+    return _hiveService.getAllConsumers();
+  }
+
+  // ---------- Retailer ----------
+  @override
+  Future<RetailerHiveModel> registerRetailer(RetailerHiveModel retailer) async {
+    return await _hiveService.registerRetailer(retailer);
+  }
+
+  @override
+  RetailerHiveModel? getRetailerById(String authId) {
+    return _hiveService.getRetailerById(authId);
+  }
+
+  @override
+  List<RetailerHiveModel> getAllRetailers() {
+    return _hiveService.getAllRetailers();
   }
 }

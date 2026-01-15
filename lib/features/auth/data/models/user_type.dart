@@ -10,4 +10,7 @@ enum UserType {
 
   @HiveField(1)
   retailer,
+
+  @HiveField(2)
+  admin,
 }

@@ -13,7 +13,6 @@ final hiveServiceProvider = Provider<HiveService>((ref) {
 });
 
 class HiveService {
-  // ======================= INIT =========================
   Future<void> init() async {
     final directory = await getApplicationDocumentsDirectory();
     final path = '${directory.path}/${HiveTableConstants.dbName}';
@@ -23,7 +22,6 @@ class HiveService {
     await _openBoxes();
   }
 
-  // ======================= Adapter Register =========================
   void _registerAdapters() {
     if (!Hive.isAdapterRegistered(HiveTableConstants.authTypeId)) {
       Hive.registerAdapter(AuthHiveModelAdapter());
@@ -39,7 +37,6 @@ class HiveService {
     }
   }
 
-  // ======================= Box Open =========================
   Future<void> _openBoxes() async {
     await Hive.openBox<AuthHiveModel>(HiveTableConstants.authTable);
     await Hive.openBox<ConsumerHiveModel>(HiveTableConstants.consumerTable);
@@ -50,41 +47,36 @@ class HiveService {
     await Hive.close();
   }
 
-  // ======================= Auth Queries =========================
   Box<AuthHiveModel> get _authBox =>
       Hive.box<AuthHiveModel>(HiveTableConstants.authTable);
 
   Future<AuthHiveModel> register(AuthHiveModel user) async {
-    if (user.userTypeIndex == 0 || user.userTypeIndex == 1) {
-      await _authBox.put(user.authId, user);
-      return user;
-    }
-    throw ArgumentError('Invalid userTypeIndex');
+    await _authBox.put(user.authId, user);
+    return user;
   }
 
-  AuthHiveModel? login(String email, String password, int userTypeIndex) {
+  AuthHiveModel? login(String email, String passwordHash) {
     try {
       return _authBox.values.firstWhere((user) =>
-      user.userTypeIndex == userTypeIndex &&
           user.email == email &&
-          user.password == password);
+          user.passwordHash == passwordHash);
     } catch (_) {
       return null;
     }
   }
 
-  AuthHiveModel? getUserById(String authId, int userTypeIndex) {
+  AuthHiveModel? getUserById(String authId, String role) {
     final user = _authBox.get(authId);
-    if (user != null && user.userTypeIndex == userTypeIndex) {
+    if (user != null && user.role == role) {
       return user;
     }
     return null;
   }
 
-  AuthHiveModel? getUserByEmail(String email, int userTypeIndex) {
+  AuthHiveModel? getUserByEmail(String email, String role) {
     try {
-      return _authBox.values.firstWhere((user) =>
-      user.userTypeIndex == userTypeIndex && user.email == email);
+      return _authBox.values
+          .firstWhere((user) => user.role == role && user.email == email);
     } catch (_) {
       return null;
     }
@@ -93,7 +85,7 @@ class HiveService {
   Future<bool> updateUser(AuthHiveModel user) async {
     if (_authBox.containsKey(user.authId)) {
       final existing = _authBox.get(user.authId);
-      if (existing != null && existing.userTypeIndex == user.userTypeIndex) {
+      if (existing != null && existing.role == user.role) {
         await _authBox.put(user.authId, user);
         return true;
       }
@@ -101,14 +93,13 @@ class HiveService {
     return false;
   }
 
-  Future<void> deleteUser(String authId, int userTypeIndex) async {
+  Future<void> deleteUser(String authId, String role) async {
     final user = _authBox.get(authId);
-    if (user != null && user.userTypeIndex == userTypeIndex) {
+    if (user != null && user.role == role) {
       await _authBox.delete(authId);
     }
   }
 
-  // ======================= Consumer Queries =========================
   Box<ConsumerHiveModel> get _consumerBox =>
       Hive.box<ConsumerHiveModel>(HiveTableConstants.consumerTable);
 
@@ -120,9 +111,9 @@ class HiveService {
   ConsumerHiveModel? getConsumerById(String authId) =>
       _consumerBox.get(authId);
 
-  List<ConsumerHiveModel> getAllConsumers() => _consumerBox.values.toList();
+  List<ConsumerHiveModel> getAllConsumers() =>
+      _consumerBox.values.toList();
 
-  // ======================= Retailer Queries =========================
   Box<RetailerHiveModel> get _retailerBox =>
       Hive.box<RetailerHiveModel>(HiveTableConstants.retailerTable);
 
@@ -134,5 +125,6 @@ class HiveService {
   RetailerHiveModel? getRetailerById(String authId) =>
       _retailerBox.get(authId);
 
-  List<RetailerHiveModel> getAllRetailers() => _retailerBox.values.toList();
+  List<RetailerHiveModel> getAllRetailers() =>
+      _retailerBox.values.toList();
 }
