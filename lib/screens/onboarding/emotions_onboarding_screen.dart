@@ -6,16 +6,17 @@ class EmotionPreferencesScreen extends StatefulWidget {
   const EmotionPreferencesScreen({super.key});
 
   @override
-  State<EmotionPreferencesScreen> createState() => _EmotionPreferencesScreenState();
+  State<EmotionPreferencesScreen> createState() =>
+      _EmotionPreferencesScreenState();
 }
 
 class _EmotionPreferencesScreenState extends State<EmotionPreferencesScreen> {
   final List<Map<String, String>> emotions = [
-    {"name": "Joy", "icon": "assets/icons/joy.png"},
-    {"name": "Calm", "icon": "assets/icons/calm.png"},
-    {"name": "Excitement", "icon": "assets/icons/excited.png"},
-    {"name": "Nostalgia", "icon": "assets/icons/nostalgic.png"},
-    {"name": "Minimalist", "icon": "assets/icons/minimalistic.png"},
+    {"name": "Joy", "icon": "assets/icons/sentiments/joy.png"},
+    {"name": "Calm", "icon": "assets/icons/sentiments/calm.png"},
+    {"name": "Excitement", "icon": "assets/icons/sentiments/excited.png"},
+    {"name": "Nostalgia", "icon": "assets/icons/category/nostalgic.png"},
+    {"name": "Minimalist", "icon": "assets/icons/sentiments/minimalistic.png"},
   ];
 
   final List<String> emotionPreferences = [];
@@ -62,19 +63,22 @@ class _EmotionPreferencesScreenState extends State<EmotionPreferencesScreen> {
                     const SizedBox(height: 24),
                     Expanded(
                       child: GridView.builder(
-                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 3,
-                          crossAxisSpacing: 12,
-                          mainAxisSpacing: 12,
-                          childAspectRatio: 1,
-                        ),
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 3,
+                              crossAxisSpacing: 12,
+                              mainAxisSpacing: 12,
+                              childAspectRatio: 1,
+                            ),
                         itemCount: emotions.length,
                         itemBuilder: (context, index) {
                           final emotion = emotions[index];
                           final name = emotion["name"]!;
                           final iconPath = emotion["icon"]!;
                           final isSelected = emotionPreferences.contains(name);
-                          final priorityIndex = emotionPreferences.indexOf(name);
+                          final priorityIndex = emotionPreferences.indexOf(
+                            name,
+                          );
 
                           return GestureDetector(
                             onTap: () => toggleEmotion(name),
@@ -118,11 +122,12 @@ class _EmotionPreferencesScreenState extends State<EmotionPreferencesScreen> {
                                       padding: const EdgeInsets.only(top: 4),
                                       child: Text(
                                         "Priority ${priorityIndex + 1}",
-                                        style: theme.textTheme.bodySmall?.copyWith(
-                                          fontSize: 12,
-                                          color: theme.colorScheme.primary,
-                                          fontWeight: FontWeight.bold,
-                                        ),
+                                        style: theme.textTheme.bodySmall
+                                            ?.copyWith(
+                                              fontSize: 12,
+                                              color: theme.colorScheme.primary,
+                                              fontWeight: FontWeight.bold,
+                                            ),
                                       ),
                                     ),
                                 ],

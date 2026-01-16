@@ -11,15 +11,15 @@ class InterestsScreen extends StatefulWidget {
 
 class _InterestsScreenState extends State<InterestsScreen> {
   final List<Map<String, String>> interests = [
-    {"name": "Fashion", "icon": "assets/icons/dress.png"},
-    {"name": "Wellness", "icon": "assets/icons/meditation.png"},
-    {"name": "Travel", "icon": "assets/icons/travel.png"},
-    {"name": "Tech", "icon": "assets/icons/computer.png"},
-    {"name": "Food", "icon": "assets/icons/salad.png"},
-    {"name": "Fitness", "icon": "assets/icons/fitness.png"},
-    {"name": "Home", "icon": "assets/icons/house.png"},
-    {"name": "Beauty", "icon": "assets/icons/beauty.png"},
-    {"name": "Art", "icon": "assets/icons/art.png"},
+    {"name": "Fashion", "icon": "assets/icons/category/dress.png"},
+    {"name": "Wellness", "icon": "assets/icons/category/meditation.png"},
+    {"name": "Travel", "icon": "assets/icons/category/travel.png"},
+    {"name": "Tech", "icon": "assets/icons/category/computer.png"},
+    {"name": "Food", "icon": "assets/icons/category/salad.png"},
+    {"name": "Fitness", "icon": "assets/icons/category/fitness.png"},
+    {"name": "Home", "icon": "assets/icons/category/nostalgic.png"},
+    {"name": "Beauty", "icon": "assets/icons/category/beauty.png"},
+    {"name": "Art", "icon": "assets/icons/category/art.png"},
   ];
 
   final List<String> interestsSelected = [];
@@ -67,17 +67,18 @@ class _InterestsScreenState extends State<InterestsScreen> {
                     Expanded(
                       child: GridView.builder(
                         gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 3,
-                          crossAxisSpacing: 12,
-                          mainAxisSpacing: 12,
-                          childAspectRatio: 1,
-                        ),
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 3,
+                              crossAxisSpacing: 12,
+                              mainAxisSpacing: 12,
+                              childAspectRatio: 1,
+                            ),
                         itemCount: interests.length,
                         itemBuilder: (context, index) {
                           final interest = interests[index];
-                          final isSelected =
-                          interestsSelected.contains(interest["name"]);
+                          final isSelected = interestsSelected.contains(
+                            interest["name"],
+                          );
                           return GestureDetector(
                             onTap: () => toggleInterest(interest["name"]!),
                             child: AnimatedContainer(
@@ -133,8 +134,7 @@ class _InterestsScreenState extends State<InterestsScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) =>
-                        const EmotionPreferencesScreen(),
+                        builder: (context) => const EmotionPreferencesScreen(),
                       ),
                     );
                   },

@@ -17,9 +17,7 @@ class _AddReviewScreenState extends State<AddReviewScreen> {
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _reviewController = TextEditingController();
 
-
   final List<String> selectedEmotions = [];
-
 
   final List<Map<String, String>> emotions = [
     {"name": "Joy", "icon": "assets/icons/joy.png"},
@@ -40,8 +38,6 @@ class _AddReviewScreenState extends State<AddReviewScreen> {
       }
     });
   }
-
-
 
   void _submitReview() {
     if (_formKey.currentState!.validate()) {
@@ -112,9 +108,12 @@ class _AddReviewScreenState extends State<AddReviewScreen> {
                       color: theme.cardColor,
                     ),
                     child: Center(
-                      child: Icon(Icons.add_a_photo,
-                          size: 40, color: theme.colorScheme.primary),
-                    )
+                      child: Icon(
+                        Icons.add_a_photo,
+                        size: 40,
+                        color: theme.colorScheme.primary,
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -140,8 +139,9 @@ class _AddReviewScreenState extends State<AddReviewScreen> {
                   ),
                   itemBuilder: (context, index) {
                     final emotion = emotions[index];
-                    final isSelected =
-                    selectedEmotions.contains(emotion["name"]);
+                    final isSelected = selectedEmotions.contains(
+                      emotion["name"],
+                    );
                     return GestureDetector(
                       onTap: () => toggleEmotion(emotion["name"]!),
                       child: AnimatedContainer(

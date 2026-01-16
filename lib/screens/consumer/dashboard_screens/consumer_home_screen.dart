@@ -20,8 +20,8 @@ class ConsumerHomeScreen extends StatelessWidget {
         "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=600&h=600&fit=crop",
         "title": "Cozy Beauty Café",
         "emotions": [
-          {"emotion": "Calm", "icon": "assets/icons/calm.png"},
-          {"emotion": "Cozy", "icon": "assets/icons/house.png"},
+          {"emotion": "Calm", "icon": "assets/icons/sentiments/calm.png"},
+          {"emotion": "Cozy", "icon": "assets/icons/sentiments/house.png"},
         ],
         "sentimentSummary": "The most calming atmosphere with good makeup.",
         "retailerName": "Cozy Beauty Café",
@@ -35,11 +35,11 @@ class ConsumerHomeScreen extends StatelessWidget {
 
     // Dummy filters
     final List<Map<String, dynamic>> filters = [
-      {"label": "Joy", "icon": "assets/icons/joy.png"},
-      {"label": "Calm", "icon": "assets/icons/calm.png"},
-      {"label": "Excite", "icon": "assets/icons/excited.png"},
-      {"label": "Nostalgia", "icon": "assets/icons/nostalgic.png"},
-      {"label": "Cozy", "icon": "assets/icons/house.png"},
+      {"label": "Joy", "icon": "assets/icons/sentiments/joy.png"},
+      {"label": "Calm", "icon": "assets/icons/sentiments/calm.png"},
+      {"label": "Excite", "icon": "assets/icons/sentiments/excited.png"},
+      {"label": "Nostalgia", "icon": "assets/icons/category/nostalgic.png"},
+      {"label": "Cozy", "icon": "assets/icons/sentiments/house.png"},
     ];
 
     return SizedBox.expand(

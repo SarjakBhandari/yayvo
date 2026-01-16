@@ -4,7 +4,7 @@ import 'package:yayvo/core/constants/hive_table_constants.dart';
 import 'package:yayvo/features/auth/domain/entities/auth_entity.dart';
 import 'package:yayvo/features/auth/data/models/consumer_hive_model.dart';
 import 'package:yayvo/features/auth/data/models/retailer_hive_model.dart';
-import 'package:yayvo/features/auth/data/models/user_type.dart'; // ✅ unified UserType
+import 'package:yayvo/features/auth/data/models/user_type.dart';
 
 part 'auth_hive_model.g.dart';
 
@@ -13,15 +13,14 @@ class AuthHiveModel extends HiveObject {
   @HiveField(0)
   final String? authId;
 
-  /// store userType as int (0 = consumer, 1 = retailer)
   @HiveField(1)
-  final int userTypeIndex;
+  final String role;
 
   @HiveField(2)
   final String email;
 
   @HiveField(3)
-  final String password;
+  final String passwordHash;
 
   @HiveField(4)
   final ConsumerHiveModel? consumer;
@@ -31,33 +30,31 @@ class AuthHiveModel extends HiveObject {
 
   AuthHiveModel({
     String? authId,
-    required this.userTypeIndex,
+    required this.role,
     required this.email,
-    required this.password,
+    required this.passwordHash,
     this.consumer,
     this.retailer,
   }) : authId = authId ?? const Uuid().v4();
 
-  // ✅ Convert to domain entity
   AuthEntity toEntity() {
-    final type = userTypeIndex == 0 ? UserType.consumer : UserType.retailer;
+    final userType = UserType.values.firstWhere((e) => e.name == role);
     return AuthEntity(
       authId: authId,
-      userType: type,
+      role: userType,
       email: email,
-      password: password,
+      passwordHash: passwordHash,
       consumer: consumer?.toEntity(),
       retailer: retailer?.toEntity(),
     );
   }
 
-
   factory AuthHiveModel.fromEntity(AuthEntity entity) {
     return AuthHiveModel(
       authId: entity.authId,
-      userTypeIndex: entity.userType == UserType.consumer ? 0 : 1,
+      role: entity.role.name,
       email: entity.email,
-      password: entity.password,
+      passwordHash: entity.passwordHash,
       consumer: entity.consumer != null
           ? ConsumerHiveModel.fromEntity(entity.consumer!)
           : null,

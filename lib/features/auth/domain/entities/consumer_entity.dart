@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 class ConsumerEntity extends Equatable {
-  final String? authId;
+  final String? authId; // foreign key to User
   final String fullName;
   final String username;
   final String? phoneNumber;
@@ -21,15 +21,29 @@ class ConsumerEntity extends Equatable {
     this.profilePicture,
   });
 
+  ConsumerEntity copyWith({
+    String? authId,
+    String? fullName,
+    String? username,
+    String? phoneNumber,
+    String? dob,
+    String? gender,
+    String? country,
+    String? profilePicture,
+  }) {
+    return ConsumerEntity(
+      authId: authId ?? this.authId,
+      fullName: fullName ?? this.fullName,
+      username: username ?? this.username,
+      phoneNumber: phoneNumber ?? this.phoneNumber,
+      dob: dob ?? this.dob,
+      gender: gender ?? this.gender,
+      country: country ?? this.country,
+      profilePicture: profilePicture ?? this.profilePicture,
+    );
+  }
+
   @override
-  List<Object?> get props => [
-    authId,
-    fullName,
-    username,
-    phoneNumber,
-    dob,
-    gender,
-    country,
-    profilePicture,
-  ];
+  List<Object?> get props =>
+      [authId, fullName, username, phoneNumber, dob, gender, country, profilePicture];
 }

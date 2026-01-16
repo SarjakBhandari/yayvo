@@ -17,6 +17,8 @@ class UserTypeAdapter extends TypeAdapter<UserType> {
         return UserType.consumer;
       case 1:
         return UserType.retailer;
+      case 2:
+        return UserType.admin;
       default:
         return UserType.consumer;
     }
@@ -30,6 +32,9 @@ class UserTypeAdapter extends TypeAdapter<UserType> {
         break;
       case UserType.retailer:
         writer.writeByte(1);
+        break;
+      case UserType.admin:
+        writer.writeByte(2);
         break;
     }
   }
