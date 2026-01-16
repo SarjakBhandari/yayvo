@@ -27,15 +27,21 @@ class AuthState extends Equatable {
   AuthState copyWith({
     AuthStatus? status,
     AuthEntity? user,
+    bool clearUser = false,
     String? errorMessage,
+    bool clearError = false,
   }) {
     return AuthState(
       status: status ?? this.status,
-      user: user ?? this.user,
-      errorMessage: errorMessage ?? this.errorMessage,
+      user: clearUser ? null : (user ?? this.user),
+      errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
     );
   }
 
   @override
   List<Object?> get props => [status, user, errorMessage];
+
+  @override
+  String toString() =>
+      'AuthState(status: $status, user: $user, errorMessage: $errorMessage)';
 }

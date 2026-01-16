@@ -47,12 +47,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         );
 
         // Check userType and navigate accordingly
-        if (next.user!.userType == UserType.consumer) {
+        if (next.user!.role == UserType.consumer) {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (_) => const InterestsScreen()),
           );
-        } else if (next.user!.userType == UserType.retailer) {
+        } else if (next.user!.role == UserType.retailer) {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (_) => const HomeFeedRetailer()),
@@ -154,7 +154,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         ref.read(authViewModelProvider.notifier).login(
                           email: _emailController.text.trim(),
                           password: _passwordController.text.trim(),
-                          userType: UserType.consumer, // or retailer
                         );
                       }
                     },

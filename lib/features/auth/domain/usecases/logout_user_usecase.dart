@@ -3,20 +3,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yayvo/core/error/failures.dart';
 import 'package:yayvo/core/usecases/app_usecases.dart';
 import 'package:yayvo/features/auth/data/repositories/auth_repository.dart';
-import 'package:yayvo/features/auth/domain/entities/auth_entity.dart';
 import 'package:yayvo/features/auth/domain/repositories/auth_repository.dart';
 
-
-class GetUserByEmail implements UsecaseWithParms<AuthEntity, String> {
+class LogoutUser implements UsecaseWithoutParms<bool> {
   final IAuthRepository repository;
-  GetUserByEmail(this.repository);
+  LogoutUser(this.repository);
 
   @override
-  Future<Either<Failure, AuthEntity>> call(String email) {
-    return repository.getUserByEmail(email);
+  Future<Either<Failure, bool>> call() {
+    return repository.logout();
   }
 }
 
-final getUserByEmailProvider = Provider<GetUserByEmail>((ref) {
-  return GetUserByEmail(ref.read(authRepositoryProvider));
+final logoutUserProvider = Provider<LogoutUser>((ref) {
+  return LogoutUser(ref.read(authRepositoryProvider));
 });

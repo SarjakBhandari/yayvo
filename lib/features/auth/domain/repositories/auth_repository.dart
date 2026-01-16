@@ -1,37 +1,43 @@
 import 'package:dartz/dartz.dart';
 import 'package:yayvo/core/error/failures.dart';
 import 'package:yayvo/features/auth/domain/entities/auth_entity.dart';
-import 'package:yayvo/features/auth/data/models/user_type.dart'; // ✅ use the shared UserType
+import 'package:yayvo/features/auth/domain/entities/consumer_entity.dart';
+import 'package:yayvo/features/auth/data/models/user_type.dart';
 
 abstract interface class IAuthRepository {
-  /// Register a new user (consumer or retailer).
-  Future<Either<Failure, bool>> register(AuthEntity authEntity);
+  /// Register a new consumer user (creates both Auth + Consumer).
+  Future<Either<Failure, AuthEntity>> register(
+      AuthEntity authEntity,
+      ConsumerEntity consumerEntity,
+      );
 
-  /// Login using email + password, restricted by userType.
+  /// Login using email + passwordHash, restricted by role.
   Future<Either<Failure, AuthEntity>> login(
       String email,
-      String password,
-      UserType userType,
+      String passwordHash,
       );
 
-  /// Get the currently logged-in user (from session/local storage).
+  /// Get the currently logged-in user.
   Future<Either<Failure, AuthEntity>> getCurrentUser();
 
-  /// Logout the current user (clear session/local storage).
+  /// Logout the current user.
   Future<Either<Failure, bool>> logout();
 
-  /// Get a user by their email and userType.
-  Future<Either<Failure, AuthEntity>> getUserByEmail(
-      String email,
-      UserType userType,
-      );
+  /// Get user by email.
+  Future<Either<Failure, AuthEntity>> getUserByEmail(String email);
 
-  /// Get a user by their authId and userType.
-  Future<Either<Failure, AuthEntity>> getUserById(
+  /// Get user by authId.
+  Future<Either<Failure, AuthEntity>> getUserById(String authId);
+
+  /// Update consumer profile.
+  Future<Either<Failure, ConsumerEntity>> updateUser(
       String authId,
-      UserType userType,
+      ConsumerEntity consumerEntity,
       );
 
-  /// Get the userType for a given authId.
-  Future<Either<Failure, UserType>> getUserType(String authId);
+  /// Delete user by authId.
+  Future<Either<Failure, bool>> deleteUser(String authId, UserType role);
+
+  /// Get all consumers.
+  Future<Either<Failure, List<ConsumerEntity>>> getAllUsers();
 }

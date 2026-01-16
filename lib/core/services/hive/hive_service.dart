@@ -13,7 +13,6 @@ final hiveServiceProvider = Provider<HiveService>((ref) {
 });
 
 class HiveService {
-  // ======================= INIT =========================
   Future<void> init() async {
     final directory = await getApplicationDocumentsDirectory();
     final path = '${directory.path}/${HiveTableConstants.dbName}';
@@ -23,7 +22,6 @@ class HiveService {
     await _openBoxes();
   }
 
-  // ======================= Adapter Register =========================
   void _registerAdapters() {
     if (!Hive.isAdapterRegistered(HiveTableConstants.authTypeId)) {
       Hive.registerAdapter(AuthHiveModelAdapter());
@@ -39,7 +37,6 @@ class HiveService {
     }
   }
 
-  // ======================= Box Open =========================
   Future<void> _openBoxes() async {
     await Hive.openBox<AuthHiveModel>(HiveTableConstants.authTable);
     await Hive.openBox<ConsumerHiveModel>(HiveTableConstants.consumerTable);
@@ -50,50 +47,48 @@ class HiveService {
     await Hive.close();
   }
 
-  // ======================= Auth Queries =========================
   Box<AuthHiveModel> get _authBox =>
       Hive.box<AuthHiveModel>(HiveTableConstants.authTable);
 
   Future<AuthHiveModel> register(AuthHiveModel user) async {
-    if (user.userTypeIndex == 0 || user.userTypeIndex == 1) {
-      await _authBox.put(user.authId, user);
-      return user;
+    if (user.authId == null) {
+      throw ArgumentError('authId must not be null for register');
     }
-    throw ArgumentError('Invalid userTypeIndex');
+    await _authBox.put(user.authId, user);
+    return user;
   }
 
-  AuthHiveModel? login(String email, String password, int userTypeIndex) {
+  AuthHiveModel? login(String email, String passwordHash) {
     try {
       return _authBox.values.firstWhere((user) =>
-      user.userTypeIndex == userTypeIndex &&
-          user.email == email &&
-          user.password == password);
+      user.email == email && user.passwordHash == passwordHash);
     } catch (_) {
       return null;
     }
   }
 
-  AuthHiveModel? getUserById(String authId, int userTypeIndex) {
+  AuthHiveModel? getUserById(String authId, String role) {
     final user = _authBox.get(authId);
-    if (user != null && user.userTypeIndex == userTypeIndex) {
+    if (user != null && user.role == role) {
       return user;
     }
     return null;
   }
 
-  AuthHiveModel? getUserByEmail(String email, int userTypeIndex) {
+  AuthHiveModel? getUserByEmail(String email, String role) {
     try {
-      return _authBox.values.firstWhere((user) =>
-      user.userTypeIndex == userTypeIndex && user.email == email);
+      return _authBox.values
+          .firstWhere((user) => user.role == role && user.email == email);
     } catch (_) {
       return null;
     }
   }
 
   Future<bool> updateUser(AuthHiveModel user) async {
+    if (user.authId == null) return false;
     if (_authBox.containsKey(user.authId)) {
       final existing = _authBox.get(user.authId);
-      if (existing != null && existing.userTypeIndex == user.userTypeIndex) {
+      if (existing != null && existing.role == user.role) {
         await _authBox.put(user.authId, user);
         return true;
       }
@@ -101,34 +96,57 @@ class HiveService {
     return false;
   }
 
-  Future<void> deleteUser(String authId, int userTypeIndex) async {
+  Future<void> deleteUser(String authId, String role) async {
     final user = _authBox.get(authId);
-    if (user != null && user.userTypeIndex == userTypeIndex) {
+    if (user != null && user.role == role) {
       await _authBox.delete(authId);
     }
   }
 
-  // ======================= Consumer Queries =========================
   Box<ConsumerHiveModel> get _consumerBox =>
       Hive.box<ConsumerHiveModel>(HiveTableConstants.consumerTable);
 
   Future<ConsumerHiveModel> registerConsumer(ConsumerHiveModel consumer) async {
+    if (consumer.authId == null) {
+      throw ArgumentError('consumer.authId must not be null for registerConsumer');
+    }
     await _consumerBox.put(consumer.authId, consumer);
     return consumer;
+  }
+
+  Future<bool> updateConsumer(ConsumerHiveModel consumer) async {
+    if (consumer.authId == null) return false;
+    if (_consumerBox.containsKey(consumer.authId)) {
+      await _consumerBox.put(consumer.authId, consumer);
+      return true;
+    }
+    return false;
   }
 
   ConsumerHiveModel? getConsumerById(String authId) =>
       _consumerBox.get(authId);
 
-  List<ConsumerHiveModel> getAllConsumers() => _consumerBox.values.toList();
+  List<ConsumerHiveModel> getAllConsumers() =>
+      _consumerBox.values.toList();
 
-  // ======================= Retailer Queries =========================
   Box<RetailerHiveModel> get _retailerBox =>
       Hive.box<RetailerHiveModel>(HiveTableConstants.retailerTable);
 
   Future<RetailerHiveModel> registerRetailer(RetailerHiveModel retailer) async {
+    if (retailer.authId == null) {
+      throw ArgumentError('retailer.authId must not be null for registerRetailer');
+    }
     await _retailerBox.put(retailer.authId, retailer);
     return retailer;
+  }
+
+  Future<bool> updateRetailer(RetailerHiveModel retailer) async {
+    if (retailer.authId == null) return false;
+    if (_retailerBox.containsKey(retailer.authId)) {
+      await _retailerBox.put(retailer.authId, retailer);
+      return true;
+    }
+    return false;
   }
 
   RetailerHiveModel? getRetailerById(String authId) =>
