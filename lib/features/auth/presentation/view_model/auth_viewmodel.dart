@@ -36,26 +36,29 @@ class AuthViewModel extends Notifier<AuthState> {
   }
 
   /// Register a new user
-  Future<void> register(AuthEntity authEntity, ConsumerEntity consumerEntity) async {
+  Future<void> register(
+    AuthEntity authEntity,
+    ConsumerEntity consumerEntity,
+  ) async {
     state = state.copyWith(status: AuthStatus.loading);
 
     final result = await _registerUsecase(
-      RegisterUserParams(authEntity: authEntity, consumerEntity: consumerEntity),
+      RegisterUserParams(
+        authEntity: authEntity,
+        consumerEntity: consumerEntity,
+      ),
     );
 
     result.fold(
-          (failure) => state = state.copyWith(
+      (failure) => state = state.copyWith(
         status: AuthStatus.error,
         errorMessage: failure.message,
       ),
-          (_) => state = state.copyWith(status: AuthStatus.registered),
+      (_) => state = state.copyWith(status: AuthStatus.registered),
     );
   }
 
-  Future<void> login({
-    required String email,
-    required String password,
-  }) async {
+  Future<void> login({required String email, required String password}) async {
     state = state.copyWith(status: AuthStatus.loading);
 
     final result = await _loginUsecase(
@@ -63,14 +66,12 @@ class AuthViewModel extends Notifier<AuthState> {
     );
 
     result.fold(
-          (failure) => state = state.copyWith(
+      (failure) => state = state.copyWith(
         status: AuthStatus.error,
         errorMessage: failure.message,
       ),
-          (user) => state = state.copyWith(
-        status: AuthStatus.authenticated,
-        user: user,
-      ),
+      (user) =>
+          state = state.copyWith(status: AuthStatus.authenticated, user: user),
     );
   }
 
@@ -81,11 +82,11 @@ class AuthViewModel extends Notifier<AuthState> {
     final result = await _logoutUsecase();
 
     result.fold(
-          (failure) => state = state.copyWith(
+      (failure) => state = state.copyWith(
         status: AuthStatus.error,
         errorMessage: failure.message,
       ),
-          (_) => state = state.copyWith(
+      (_) => state = state.copyWith(
         status: AuthStatus.unauthenticated,
         user: null,
       ),
@@ -99,14 +100,12 @@ class AuthViewModel extends Notifier<AuthState> {
     final result = await _getCurrentUserUsecase();
 
     result.fold(
-          (failure) => state = state.copyWith(
+      (failure) => state = state.copyWith(
         status: AuthStatus.error,
         errorMessage: failure.message,
       ),
-          (user) => state = state.copyWith(
-        status: AuthStatus.authenticated,
-        user: user,
-      ),
+      (user) =>
+          state = state.copyWith(status: AuthStatus.authenticated, user: user),
     );
   }
 
@@ -117,14 +116,12 @@ class AuthViewModel extends Notifier<AuthState> {
     final result = await _getUserByIdUsecase(authId);
 
     result.fold(
-          (failure) => state = state.copyWith(
+      (failure) => state = state.copyWith(
         status: AuthStatus.error,
         errorMessage: failure.message,
       ),
-          (user) => state = state.copyWith(
-        status: AuthStatus.authenticated,
-        user: user,
-      ),
+      (user) =>
+          state = state.copyWith(status: AuthStatus.authenticated, user: user),
     );
   }
 
@@ -135,14 +132,12 @@ class AuthViewModel extends Notifier<AuthState> {
     final result = await _getUserByEmailUsecase(email);
 
     result.fold(
-          (failure) => state = state.copyWith(
+      (failure) => state = state.copyWith(
         status: AuthStatus.error,
         errorMessage: failure.message,
       ),
-          (user) => state = state.copyWith(
-        status: AuthStatus.authenticated,
-        user: user,
-      ),
+      (user) =>
+          state = state.copyWith(status: AuthStatus.authenticated, user: user),
     );
   }
 

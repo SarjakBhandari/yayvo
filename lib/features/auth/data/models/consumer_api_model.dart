@@ -1,6 +1,6 @@
 // consumer_api_model.dart
-import 'package:yayvo/features/auth/domain/entities/auth_entity.dart';
 import 'package:yayvo/features/auth/domain/entities/consumer_entity.dart';
+import 'package:yayvo/features/auth/domain/entities/auth_entity.dart';
 
 class ConsumerApiModel {
   final String? authId;
@@ -27,7 +27,10 @@ class ConsumerApiModel {
     this.profilePicture,
   });
 
-  factory ConsumerApiModel.fromEntity(AuthEntity auth, ConsumerEntity consumer) {
+  factory ConsumerApiModel.fromEntity(
+    AuthEntity auth,
+    ConsumerEntity consumer,
+  ) {
     return ConsumerApiModel(
       authId: auth.authId,
       email: auth.email,
@@ -46,7 +49,7 @@ class ConsumerApiModel {
     return ConsumerApiModel(
       authId: consumer.authId,
       email: '',
-      password: '',
+      password: '', // Will be overridden by auth password in toJson
       fullName: consumer.fullName,
       username: consumer.username,
       phoneNumber: consumer.phoneNumber ?? '',
@@ -72,21 +75,21 @@ class ConsumerApiModel {
     );
   }
 
+  // consumer_api_model.dart
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
-    if (authId != null) map['authId'] = authId;
+    if (authId != null && authId!.isNotEmpty) map['authId'] = authId;
     if (email.isNotEmpty) map['email'] = email;
-    if (password.isNotEmpty) map['password'] = password;
-
+    // Always include password (required for registration, should never be empty during registration flow)
+    map['password'] = password;
     map['fullName'] = fullName;
     map['username'] = username;
     map['phoneNumber'] = phoneNumber;
     map['dob'] = dob;
     map['gender'] = gender;
     map['country'] = country;
-    if (profilePicture != null && profilePicture!.isNotEmpty) {
+    if (profilePicture != null && profilePicture!.isNotEmpty)
       map['profilePicture'] = profilePicture;
-    }
     return map;
   }
 

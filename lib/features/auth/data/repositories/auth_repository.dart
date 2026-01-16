@@ -38,47 +38,59 @@ class AuthRepository implements IAuthRepository {
     required IAuthLocalDataSource authDatasource,
     required IAuthRemoteDataSource authRemoteDataSource,
     required NetworkInfo networkInfo,
-  })  : _authDataSource = authDatasource,
-        _authRemoteDataSource = authRemoteDataSource,
-        _networkInfo = networkInfo;
+  }) : _authDataSource = authDatasource,
+       _authRemoteDataSource = authRemoteDataSource,
+       _networkInfo = networkInfo;
 
   @override
-  Future<Either<Failure, AuthEntity>> register(AuthEntity authEntity, ConsumerEntity consumerEntity) async {
+  Future<Either<Failure, AuthEntity>> register(
+    AuthEntity authEntity,
+    ConsumerEntity consumerEntity,
+  ) async {
     if (await _networkInfo.isConnected) {
       try {
-        // Try single flattened payload (auth + consumer)
+        // Single API call with flattened auth + consumer payload
         final apiModel = AuthApiModel.fromEntity(authEntity, consumerEntity);
         final registeredUser = await _authRemoteDataSource.register(apiModel);
 
-        // If backend returned consumer inside auth response, use it
-        if (registeredUser.consumer != null) {
-          final result = registeredUser.toEntity().copyWith(consumer: registeredUser.consumer!.toEntity());
-          return Right(result);
-        }
-
-        // Otherwise do explicit consumer registration (two-step)
-        final consumerApi = ConsumerApiModel.fromEntity(registeredUser.toEntity(), consumerEntity.copyWith(authId: registeredUser.id));
-        final registeredConsumer = await _authRemoteDataSource.registerConsumer(consumerApi);
-
-        final result = registeredUser.toEntity().copyWith(consumer: registeredConsumer.toEntity());
-        return Right(result);
+        // Successfully registered, return the result
+        return Right(
+          registeredUser.toEntity().copyWith(
+            consumer: consumerEntity.copyWith(authId: registeredUser.id),
+          ),
+        );
       } on DioException catch (e) {
-        return Left(ApiFailure(message: e.response?.data['message'] ?? "Registration Failed", statusCode: e.response?.statusCode));
+        return Left(
+          ApiFailure(
+            message: e.response?.data['message'] ?? "Registration Failed",
+            statusCode: e.response?.statusCode,
+          ),
+        );
       } catch (e) {
         return Left(ApiFailure(message: e.toString()));
       }
     } else {
       try {
-        final existingUser = await _authDataSource.getUserByEmail(authEntity.email, UserType.consumer);
-        if (existingUser != null) return const Left(LocalDatabaseFailure(message: "Email already registered"));
+        final existingUser = await _authDataSource.getUserByEmail(
+          authEntity.email,
+          UserType.consumer,
+        );
+        if (existingUser != null)
+          return const Left(
+            LocalDatabaseFailure(message: "Email already registered"),
+          );
 
         final authModel = AuthHiveModel.fromEntity(authEntity);
         await _authDataSource.register(authModel);
 
-        final consumerModel = ConsumerHiveModel.fromEntity(consumerEntity.copyWith(authId: authModel.authId));
+        final consumerModel = ConsumerHiveModel.fromEntity(
+          consumerEntity.copyWith(authId: authModel.authId),
+        );
         await _authDataSource.registerConsumer(consumerModel);
 
-        final offlineEntity = authModel.toEntity().copyWith(consumer: consumerModel.toEntity());
+        final offlineEntity = authModel.toEntity().copyWith(
+          consumer: consumerModel.toEntity(),
+        );
         return Right(offlineEntity);
       } catch (e) {
         return Left(LocalDatabaseFailure(message: e.toString()));
@@ -89,9 +101,9 @@ class AuthRepository implements IAuthRepository {
   // ---------- Login ----------
   @override
   Future<Either<Failure, AuthEntity>> login(
-      String email,
-      String passwordHash,
-      ) async {
+    String email,
+    String passwordHash,
+  ) async {
     if (await _networkInfo.isConnected) {
       try {
         final apiModel = await _authRemoteDataSource.login(email, passwordHash);
@@ -100,10 +112,12 @@ class AuthRepository implements IAuthRepository {
         }
         return const Left(ApiFailure(message: "Invalid Credentials"));
       } on DioException catch (e) {
-        return Left(ApiFailure(
-          message: e.response?.data['message'] ?? "Login Failed",
-          statusCode: e.response?.statusCode,
-        ));
+        return Left(
+          ApiFailure(
+            message: e.response?.data['message'] ?? "Login Failed",
+            statusCode: e.response?.statusCode,
+          ),
+        );
       } catch (e) {
         return Left(ApiFailure(message: e.toString()));
       }
@@ -151,8 +165,10 @@ class AuthRepository implements IAuthRepository {
   @override
   Future<Either<Failure, AuthEntity>> getUserByEmail(String email) async {
     try {
-      final model =
-      await _authDataSource.getUserByEmail(email, UserType.consumer);
+      final model = await _authDataSource.getUserByEmail(
+        email,
+        UserType.consumer,
+      );
       if (model != null) {
         return Right(model.toEntity());
       }
@@ -166,7 +182,10 @@ class AuthRepository implements IAuthRepository {
   @override
   Future<Either<Failure, AuthEntity>> getUserById(String authId) async {
     try {
-      final model = await _authDataSource.getUserById(authId, UserType.consumer);
+      final model = await _authDataSource.getUserById(
+        authId,
+        UserType.consumer,
+      );
       if (model != null) {
         return Right(model.toEntity());
       }
@@ -179,9 +198,9 @@ class AuthRepository implements IAuthRepository {
   // ---------- Update Consumer ----------
   @override
   Future<Either<Failure, ConsumerEntity>> updateUser(
-      String authId,
-      ConsumerEntity consumerEntity,
-      ) async {
+    String authId,
+    ConsumerEntity consumerEntity,
+  ) async {
     if (await _networkInfo.isConnected) {
       try {
         final consumerApi = ConsumerApiModel.fromConsumerEntity(
@@ -191,17 +210,20 @@ class AuthRepository implements IAuthRepository {
         final updated = await _authRemoteDataSource.updateConsumer(consumerApi);
         return Right(updated.toEntity());
       } on DioException catch (e) {
-        return Left(ApiFailure(
-          message: e.response?.data['message'] ?? "Update Failed",
-          statusCode: e.response?.statusCode,
-        ));
+        return Left(
+          ApiFailure(
+            message: e.response?.data['message'] ?? "Update Failed",
+            statusCode: e.response?.statusCode,
+          ),
+        );
       } catch (e) {
         return Left(ApiFailure(message: e.toString()));
       }
     } else {
       try {
-        final consumerModel =
-        ConsumerHiveModel.fromEntity(consumerEntity.copyWith(authId: authId));
+        final consumerModel = ConsumerHiveModel.fromEntity(
+          consumerEntity.copyWith(authId: authId),
+        );
         final updated = await _authDataSource.updateConsumer(consumerModel);
         if (updated) {
           return Right(consumerModel.toEntity());
@@ -221,10 +243,12 @@ class AuthRepository implements IAuthRepository {
         final result = await _authRemoteDataSource.deleteUser(authId, role);
         return Right(result);
       } on DioException catch (e) {
-        return Left(ApiFailure(
-          message: e.response?.data['message'] ?? "Delete Failed",
-          statusCode: e.response?.statusCode,
-        ));
+        return Left(
+          ApiFailure(
+            message: e.response?.data['message'] ?? "Delete Failed",
+            statusCode: e.response?.statusCode,
+          ),
+        );
       } catch (e) {
         return Left(ApiFailure(message: e.toString()));
       }
@@ -246,10 +270,12 @@ class AuthRepository implements IAuthRepository {
         final consumers = await _authRemoteDataSource.getAllConsumers();
         return Right(consumers.map((c) => c.toEntity()).toList());
       } on DioException catch (e) {
-        return Left(ApiFailure(
-          message: e.response?.data['message'] ?? "Fetch Failed",
-          statusCode: e.response?.statusCode,
-        ));
+        return Left(
+          ApiFailure(
+            message: e.response?.data['message'] ?? "Fetch Failed",
+            statusCode: e.response?.statusCode,
+          ),
+        );
       } catch (e) {
         return Left(ApiFailure(message: e.toString()));
       }
