@@ -52,11 +52,9 @@ class AuthViewModel extends Notifier<AuthState> {
     );
   }
 
-  /// Login existing user
   Future<void> login({
     required String email,
     required String password,
-    required UserType userType,
   }) async {
     state = state.copyWith(status: AuthStatus.loading);
 
@@ -71,9 +69,11 @@ class AuthViewModel extends Notifier<AuthState> {
       ),
           (user) => state = state.copyWith(
         status: AuthStatus.authenticated,
-        user: user),
+        user: user,
+      ),
     );
   }
+
   /// Logout current user
   Future<void> logout() async {
     state = state.copyWith(status: AuthStatus.loading);
@@ -132,7 +132,7 @@ class AuthViewModel extends Notifier<AuthState> {
   Future<void> getUserByEmail(String email) async {
     state = state.copyWith(status: AuthStatus.loading);
 
-    final result = await _getUserByEmailUsecase(email); // 👈 correct, GetUserByEmail expects String
+    final result = await _getUserByEmailUsecase(email);
 
     result.fold(
           (failure) => state = state.copyWith(

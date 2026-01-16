@@ -1,4 +1,6 @@
+import 'package:yayvo/features/auth/data/models/auth_api_model.dart';
 import 'package:yayvo/features/auth/data/models/auth_hive_model.dart';
+import 'package:yayvo/features/auth/data/models/consumer_api_model.dart';
 import 'package:yayvo/features/auth/data/models/consumer_hive_model.dart';
 import 'package:yayvo/features/auth/data/models/retailer_hive_model.dart';
 import 'package:yayvo/features/auth/data/models/user_type.dart';
@@ -39,4 +41,36 @@ abstract interface class IAuthLocalDataSource {
   RetailerHiveModel? getRetailerById(String authId);
 
   List<RetailerHiveModel> getAllRetailers();
+}
+
+
+abstract interface class IAuthRemoteDataSource {
+  // ---------- Auth ----------
+  Future<AuthApiModel> register(AuthApiModel user);
+
+  Future<AuthApiModel?> login(
+      String email,
+      String passwordHash,
+      );
+
+  Future<AuthApiModel?> getUserById(String authId, UserType userType);
+
+  Future<AuthApiModel?> getUserByEmail(String email, UserType userType);
+
+  Future<bool> updateUser(AuthApiModel user);
+
+  Future<bool> deleteUser(String authId, UserType userType);
+
+  Future<AuthApiModel?> getCurrentUser();
+
+  Future<bool> logout();
+
+  Future<UserType?> getUserType(String authId);
+
+  // ---------- Consumer ----------
+  Future<ConsumerApiModel> registerConsumer(ConsumerApiModel consumer);
+
+  Future<ConsumerApiModel?> getConsumerById(String authId);
+
+  Future<List<ConsumerApiModel>> getAllConsumers();
 }
