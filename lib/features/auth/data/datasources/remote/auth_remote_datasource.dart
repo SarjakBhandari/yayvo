@@ -1,3 +1,4 @@
+// auth_remote_datasource.dart
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yayvo/core/api/api_client.dart';
@@ -23,9 +24,32 @@ class AuthRemoteDatasource implements IAuthRemoteDataSource {
     required ApiClient apiClient,
     required UserSessionService userSessionService,
   })  : _apiClient = apiClient,
-        _userSessionService = userSessionService;
+        _userSessionService = userSessionService {
+    _addLoggingInterceptor();
+  }
 
-  // ---------- Auth ----------
+  void _addLoggingInterceptor() {
+    _apiClient.dio.interceptors.add(InterceptorsWrapper(
+      onRequest: (options, handler) {
+        // debug print
+        // ignore: avoid_print
+        print('DIO REQUEST -> ${options.method} ${options.uri}');
+        // ignore: avoid_print
+        print('DIO REQUEST DATA -> ${options.data}');
+        return handler.next(options);
+      },
+      onResponse: (response, handler) {
+        // ignore: avoid_print
+        print('DIO RESPONSE -> ${response.data}');
+        return handler.next(response);
+      },
+      onError: (err, handler) {
+        // ignore: avoid_print
+        print('DIO ERROR -> ${err.response?.data ?? err.message}');
+        return handler.next(err);
+      },
+    ));
+  }
 
   @override
   Future<AuthApiModel?> login(String email, String passwordHash) async {
@@ -36,15 +60,9 @@ class AuthRemoteDatasource implements IAuthRemoteDataSource {
 
     if (response.data['success'] == true) {
       final data = response.data['user'] as Map<String, dynamic>;
-      final user = AuthApiModel.fromJson(data);
-
-      // Save full session
+      final user = AuthApiModel.fromJson({'user': data, 'token': response.data['token']});
       await _userSessionService.saveUserSession(
-        UserSession(
-          userId: user.id ?? '',
-          email: user.email,
-          role: user.role.toString()
-        ),
+        UserSession(userId: user.id ?? '', email: user.email, role: user.role.toString()),
       );
       return user;
     }
@@ -53,26 +71,43 @@ class AuthRemoteDatasource implements IAuthRemoteDataSource {
 
   @override
   Future<AuthApiModel> register(AuthApiModel user) async {
-    final response = await _apiClient.post(
-      ApiEndpoints.registrationConsumer,
-      data: user.toJson(),
-    );
+    final payload = user.toJson();
+    final response = await _apiClient.post(ApiEndpoints.registrationConsumer, data: payload);
 
     if (response.data['success'] == true) {
       final data = response.data['data'] as Map<String, dynamic>;
       return AuthApiModel.fromJson(data);
     }
-    throw DioException(
-      requestOptions: response.requestOptions,
-      response: response,
-      type: DioExceptionType.badResponse,
-    );
+
+    throw DioException(requestOptions: response.requestOptions, response: response, type: DioExceptionType.badResponse);
+  }
+
+  @override
+  Future<ConsumerApiModel> registerConsumer(ConsumerApiModel consumer) async {
+    final response = await _apiClient.post(ApiEndpoints.registrationConsumer, data: consumer.toJson());
+    if (response.data['success'] == true) {
+      final data = response.data['data'] as Map<String, dynamic>;
+      return ConsumerApiModel.fromJson(data);
+    }
+    throw DioException(requestOptions: response.requestOptions, response: response, type: DioExceptionType.badResponse);
+  }
+
+  @override
+  Future<ConsumerApiModel> updateConsumer(ConsumerApiModel consumer) async {
+    if (consumer.authId == null || consumer.authId!.isEmpty) {
+      throw DioException(requestOptions: RequestOptions(path: "${ApiEndpoints.baseUrl}consumers/"), error: "Missing authId for consumer update", type: DioExceptionType.badResponse);
+    }
+    final response = await _apiClient.put("${ApiEndpoints.baseUrl}consumers/${consumer.authId}", data: consumer.toJson());
+    if (response.data['success'] == true) {
+      final data = response.data['data'] as Map<String, dynamic>;
+      return ConsumerApiModel.fromJson(data);
+    }
+    throw DioException(requestOptions: response.requestOptions, response: response, type: DioExceptionType.badResponse);
   }
 
   @override
   Future<AuthApiModel?> getUserById(String authId, UserType userType) async {
     final response = await _apiClient.get("${ApiEndpoints.baseUrl}users/$authId");
-
     if (response.data['success'] == true) {
       final data = response.data['data'] as Map<String, dynamic>;
       return AuthApiModel.fromJson(data);
@@ -83,7 +118,6 @@ class AuthRemoteDatasource implements IAuthRemoteDataSource {
   @override
   Future<AuthApiModel?> getUserByEmail(String email, UserType userType) async {
     final response = await _apiClient.get("${ApiEndpoints.baseUrl}users/email/$email");
-
     if (response.data['success'] == true) {
       final data = response.data['data'] as Map<String, dynamic>;
       return AuthApiModel.fromJson(data);
@@ -93,10 +127,7 @@ class AuthRemoteDatasource implements IAuthRemoteDataSource {
 
   @override
   Future<bool> updateUser(AuthApiModel user) async {
-    final response = await _apiClient.put(
-      "${ApiEndpoints.baseUrl}users/${user.id}",
-      data: user.toJson(),
-    );
+    final response = await _apiClient.put("${ApiEndpoints.baseUrl}users/${user.id}", data: user.toJson());
     return response.data['success'] == true;
   }
 
@@ -109,9 +140,7 @@ class AuthRemoteDatasource implements IAuthRemoteDataSource {
   @override
   Future<AuthApiModel?> getCurrentUser() async {
     final session = _userSessionService.getUserSession();
-    if (session != null) {
-      return getUserById(session.userId, UserType.consumer);
-    }
+    if (session != null) return getUserById(session.userId, UserType.consumer);
     return null;
   }
 
@@ -127,30 +156,9 @@ class AuthRemoteDatasource implements IAuthRemoteDataSource {
     return user != null ? UserType.consumer : null;
   }
 
-  // ---------- Consumer ----------
-
-  @override
-  Future<ConsumerApiModel> registerConsumer(ConsumerApiModel consumer) async {
-    final response = await _apiClient.post(
-      ApiEndpoints.registrationConsumer,
-      data: consumer.toJson(),
-    );
-
-    if (response.data['success'] == true) {
-      final data = response.data['data'] as Map<String, dynamic>;
-      return ConsumerApiModel.fromJson(data);
-    }
-    throw DioException(
-      requestOptions: response.requestOptions,
-      response: response,
-      type: DioExceptionType.badResponse,
-    );
-  }
-
   @override
   Future<ConsumerApiModel?> getConsumerById(String authId) async {
     final response = await _apiClient.get("${ApiEndpoints.baseUrl}consumers/$authId");
-
     if (response.data['success'] == true) {
       final data = response.data['data'] as Map<String, dynamic>;
       return ConsumerApiModel.fromJson(data);
@@ -161,7 +169,6 @@ class AuthRemoteDatasource implements IAuthRemoteDataSource {
   @override
   Future<List<ConsumerApiModel>> getAllConsumers() async {
     final response = await _apiClient.get("${ApiEndpoints.baseUrl}consumers");
-
     if (response.data['success'] == true) {
       final list = response.data['data'] as List<dynamic>;
       return list.map((json) => ConsumerApiModel.fromJson(json as Map<String, dynamic>)).toList();

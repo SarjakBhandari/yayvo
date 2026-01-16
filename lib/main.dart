@@ -10,12 +10,18 @@ import 'core/services/storage/user_session_service.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Initialize Hive service
+  final hiveService = HiveService();
+  await hiveService.init();
+
+  // SharedPreferences
   final prefs = await SharedPreferences.getInstance();
 
   runApp(
     ProviderScope(
       overrides: [
         sharedPreferencesProvider.overrideWithValue(prefs),
+        hiveServiceProvider.overrideWithValue(hiveService),
       ],
       child: App(),
     ),

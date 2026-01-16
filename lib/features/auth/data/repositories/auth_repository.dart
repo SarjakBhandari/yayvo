@@ -42,47 +42,44 @@ class AuthRepository implements IAuthRepository {
         _authRemoteDataSource = authRemoteDataSource,
         _networkInfo = networkInfo;
 
-  // ---------- Register ----------
   @override
-  Future<Either<Failure, AuthEntity>> register(
-      AuthEntity authEntity,
-      ConsumerEntity consumerEntity,
-      ) async {
+  Future<Either<Failure, AuthEntity>> register(AuthEntity authEntity, ConsumerEntity consumerEntity) async {
     if (await _networkInfo.isConnected) {
       try {
-        final apiModel = AuthApiModel.fromEntity(authEntity);
+        // Try single flattened payload (auth + consumer)
+        final apiModel = AuthApiModel.fromEntity(authEntity, consumerEntity);
         final registeredUser = await _authRemoteDataSource.register(apiModel);
 
-        // also register consumer remotely
-        final consumerApi = ConsumerApiModel.fromEntity(consumerEntity);
-        await _authRemoteDataSource.registerConsumer(consumerApi);
+        // If backend returned consumer inside auth response, use it
+        if (registeredUser.consumer != null) {
+          final result = registeredUser.toEntity().copyWith(consumer: registeredUser.consumer!.toEntity());
+          return Right(result);
+        }
 
-        return Right(registeredUser.toEntity());
+        // Otherwise do explicit consumer registration (two-step)
+        final consumerApi = ConsumerApiModel.fromEntity(registeredUser.toEntity(), consumerEntity.copyWith(authId: registeredUser.id));
+        final registeredConsumer = await _authRemoteDataSource.registerConsumer(consumerApi);
+
+        final result = registeredUser.toEntity().copyWith(consumer: registeredConsumer.toEntity());
+        return Right(result);
       } on DioException catch (e) {
-        return Left(ApiFailure(
-          message: e.response?.data['message'] ?? "Registration Failed",
-          statusCode: e.response?.statusCode,
-        ));
+        return Left(ApiFailure(message: e.response?.data['message'] ?? "Registration Failed", statusCode: e.response?.statusCode));
       } catch (e) {
         return Left(ApiFailure(message: e.toString()));
       }
     } else {
       try {
-        final existingUser =
-        await _authDataSource.getUserByEmail(authEntity.email, UserType.consumer);
-        if (existingUser != null) {
-          return const Left(
-            LocalDatabaseFailure(message: "Email already registered"),
-          );
-        }
+        final existingUser = await _authDataSource.getUserByEmail(authEntity.email, UserType.consumer);
+        if (existingUser != null) return const Left(LocalDatabaseFailure(message: "Email already registered"));
 
         final authModel = AuthHiveModel.fromEntity(authEntity);
         await _authDataSource.register(authModel);
 
-        final consumerModel = ConsumerHiveModel.fromEntity(consumerEntity);
+        final consumerModel = ConsumerHiveModel.fromEntity(consumerEntity.copyWith(authId: authModel.authId));
         await _authDataSource.registerConsumer(consumerModel);
 
-        return Right(authModel.toEntity());
+        final offlineEntity = authModel.toEntity().copyWith(consumer: consumerModel.toEntity());
+        return Right(offlineEntity);
       } catch (e) {
         return Left(LocalDatabaseFailure(message: e.toString()));
       }
@@ -169,8 +166,7 @@ class AuthRepository implements IAuthRepository {
   @override
   Future<Either<Failure, AuthEntity>> getUserById(String authId) async {
     try {
-      final model =
-      await _authDataSource.getUserById(authId, UserType.consumer);
+      final model = await _authDataSource.getUserById(authId, UserType.consumer);
       if (model != null) {
         return Right(model.toEntity());
       }
@@ -188,8 +184,11 @@ class AuthRepository implements IAuthRepository {
       ) async {
     if (await _networkInfo.isConnected) {
       try {
-        final consumerApi = ConsumerApiModel.fromEntity(consumerEntity);
-        final updated = await _authRemoteDataSource.registerConsumer(consumerApi);
+        final consumerApi = ConsumerApiModel.fromConsumerEntity(
+          consumerEntity.copyWith(authId: authId),
+        );
+
+        final updated = await _authRemoteDataSource.updateConsumer(consumerApi);
         return Right(updated.toEntity());
       } on DioException catch (e) {
         return Left(ApiFailure(
@@ -201,9 +200,13 @@ class AuthRepository implements IAuthRepository {
       }
     } else {
       try {
-        final consumerModel = ConsumerHiveModel.fromEntity(consumerEntity);
-        await _authDataSource.registerConsumer(consumerModel); // acts as update
-        return Right(consumerModel.toEntity());
+        final consumerModel =
+        ConsumerHiveModel.fromEntity(consumerEntity.copyWith(authId: authId));
+        final updated = await _authDataSource.updateConsumer(consumerModel);
+        if (updated) {
+          return Right(consumerModel.toEntity());
+        }
+        return Left(LocalDatabaseFailure(message: "Local update failed"));
       } catch (e) {
         return Left(LocalDatabaseFailure(message: e.toString()));
       }

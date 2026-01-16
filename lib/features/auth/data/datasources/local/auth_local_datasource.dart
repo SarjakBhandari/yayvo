@@ -36,7 +36,7 @@ class AuthLocalDatasource implements IAuthLocalDataSource {
   @override
   Future<AuthHiveModel?> login(
       String email,
-      String passwordHash
+      String passwordHash,
       ) async {
     try {
       return _hiveService.login(email, passwordHash);
@@ -76,9 +76,11 @@ class AuthLocalDatasource implements IAuthLocalDataSource {
 
       if (updated) {
         if (user.role == UserType.consumer.name && user.consumer != null) {
-          await _hiveService.registerConsumer(user.consumer!);
+          // update consumer record instead of re-registering
+          await _hiveService.updateConsumer(user.consumer!);
         } else if (user.role == UserType.retailer.name && user.retailer != null) {
-          await _hiveService.registerRetailer(user.retailer!);
+          // update retailer record instead of re-registering
+          await _hiveService.updateRetailer(user.retailer!);
         }
       }
 
@@ -157,6 +159,11 @@ class AuthLocalDatasource implements IAuthLocalDataSource {
   }
 
   @override
+  Future<bool> updateConsumer(ConsumerHiveModel consumer) async {
+    return await _hiveService.updateConsumer(consumer);
+  }
+
+  @override
   ConsumerHiveModel? getConsumerById(String authId) {
     return _hiveService.getConsumerById(authId);
   }
@@ -170,6 +177,11 @@ class AuthLocalDatasource implements IAuthLocalDataSource {
   @override
   Future<RetailerHiveModel> registerRetailer(RetailerHiveModel retailer) async {
     return await _hiveService.registerRetailer(retailer);
+  }
+
+  @override
+  Future<bool> updateRetailer(RetailerHiveModel retailer) async {
+    return await _hiveService.updateRetailer(retailer);
   }
 
   @override

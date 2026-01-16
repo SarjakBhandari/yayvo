@@ -21,6 +21,25 @@ class AuthEntity extends Equatable {
     this.retailer,
   });
 
+  AuthEntity copyWith({
+    String? authId,
+    UserType? role,
+    String? email,
+    String? passwordHash,
+    ConsumerEntity? consumer,
+    RetailerEntity? retailer,
+  }) {
+    return AuthEntity(
+      authId: authId ?? this.authId,
+      role: role ?? this.role,
+      email: email ?? this.email,
+      passwordHash: passwordHash ?? this.passwordHash,
+      consumer: consumer ?? this.consumer,
+      retailer: retailer ?? this.retailer,
+    );
+  }
+
   @override
-  List<Object?> get props => [authId, role, email, passwordHash, consumer, retailer];
+  List<Object?> get props =>
+      [authId, role, email, passwordHash, consumer, retailer];
 }

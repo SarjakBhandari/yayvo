@@ -51,6 +51,9 @@ class HiveService {
       Hive.box<AuthHiveModel>(HiveTableConstants.authTable);
 
   Future<AuthHiveModel> register(AuthHiveModel user) async {
+    if (user.authId == null) {
+      throw ArgumentError('authId must not be null for register');
+    }
     await _authBox.put(user.authId, user);
     return user;
   }
@@ -58,8 +61,7 @@ class HiveService {
   AuthHiveModel? login(String email, String passwordHash) {
     try {
       return _authBox.values.firstWhere((user) =>
-          user.email == email &&
-          user.passwordHash == passwordHash);
+      user.email == email && user.passwordHash == passwordHash);
     } catch (_) {
       return null;
     }
@@ -83,6 +85,7 @@ class HiveService {
   }
 
   Future<bool> updateUser(AuthHiveModel user) async {
+    if (user.authId == null) return false;
     if (_authBox.containsKey(user.authId)) {
       final existing = _authBox.get(user.authId);
       if (existing != null && existing.role == user.role) {
@@ -104,8 +107,20 @@ class HiveService {
       Hive.box<ConsumerHiveModel>(HiveTableConstants.consumerTable);
 
   Future<ConsumerHiveModel> registerConsumer(ConsumerHiveModel consumer) async {
+    if (consumer.authId == null) {
+      throw ArgumentError('consumer.authId must not be null for registerConsumer');
+    }
     await _consumerBox.put(consumer.authId, consumer);
     return consumer;
+  }
+
+  Future<bool> updateConsumer(ConsumerHiveModel consumer) async {
+    if (consumer.authId == null) return false;
+    if (_consumerBox.containsKey(consumer.authId)) {
+      await _consumerBox.put(consumer.authId, consumer);
+      return true;
+    }
+    return false;
   }
 
   ConsumerHiveModel? getConsumerById(String authId) =>
@@ -118,13 +133,24 @@ class HiveService {
       Hive.box<RetailerHiveModel>(HiveTableConstants.retailerTable);
 
   Future<RetailerHiveModel> registerRetailer(RetailerHiveModel retailer) async {
+    if (retailer.authId == null) {
+      throw ArgumentError('retailer.authId must not be null for registerRetailer');
+    }
     await _retailerBox.put(retailer.authId, retailer);
     return retailer;
+  }
+
+  Future<bool> updateRetailer(RetailerHiveModel retailer) async {
+    if (retailer.authId == null) return false;
+    if (_retailerBox.containsKey(retailer.authId)) {
+      await _retailerBox.put(retailer.authId, retailer);
+      return true;
+    }
+    return false;
   }
 
   RetailerHiveModel? getRetailerById(String authId) =>
       _retailerBox.get(authId);
 
-  List<RetailerHiveModel> getAllRetailers() =>
-      _retailerBox.values.toList();
+  List<RetailerHiveModel> getAllRetailers() => _retailerBox.values.toList();
 }
