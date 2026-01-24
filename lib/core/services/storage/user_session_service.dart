@@ -26,14 +26,12 @@ class UserSession {
   UserSession copyWith({
     String? userId,
     String? email,
-    String? role
-
+    String? role,
   }) {
     return UserSession(
       userId: userId ?? this.userId,
       email: email ?? this.email,
       role: role ?? this.role,
-
     );
   }
 
@@ -41,7 +39,7 @@ class UserSession {
     return {
       'user_id': userId,
       'user_email': email,
-      'user_role': role
+      'user_role': role,
     };
   }
 
@@ -50,7 +48,6 @@ class UserSession {
       userId: map['user_id'] as String,
       email: map['user_email'] as String,
       role: map['user_role'] as String,
-
     );
   }
 }
@@ -64,6 +61,9 @@ class UserSessionService {
   static const String _keyUserEmail = 'user_email';
   static const String _keyUserRole = 'user_role';
 
+  // Keys for theme and token
+  static const String _keyThemeMode = 'theme_mode';
+  static const String _keyAuthToken = 'auth_token';
 
   UserSessionService({required SharedPreferences prefs}) : _prefs = prefs;
 
@@ -73,7 +73,6 @@ class UserSessionService {
     await _prefs.setString(_keyUserId, session.userId);
     await _prefs.setString(_keyUserEmail, session.email);
     await _prefs.setString(_keyUserRole, session.role);
-
   }
 
   // Check if user is logged in
@@ -89,19 +88,32 @@ class UserSessionService {
       return null;
     }
 
-    return UserSession(
-      userId: userId,
-      email: email,
-      role: role
-    );
+    return UserSession(userId: userId, email: email, role: role);
   }
 
+  // ===== Theme mode =====
+  /// Save theme mode as a simple string: 'light', 'dark', or 'system'
+  Future<void> saveThemeMode(String mode) async {
+    await _prefs.setString(_keyThemeMode, mode);
+  }
 
-  // Update a single field in session
+  /// Returns saved theme mode string or null if not set
+  String? getThemeMode() => _prefs.getString(_keyThemeMode);
+
+  // ===== Auth token =====
+  Future<void> saveAuthToken(String token) async {
+    await _prefs.setString(_keyAuthToken, token);
+  }
+
+  String? getAuthToken() => _prefs.getString(_keyAuthToken);
+
+  Future<void> clearAuthToken() async {
+    await _prefs.remove(_keyAuthToken);
+  }
+
+  // Update a single field in session (writes regardless of existing key)
   Future<void> updateField(String key, String value) async {
-    if (_prefs.containsKey(key)) {
-      await _prefs.setString(key, value);
-    }
+    await _prefs.setString(key, value);
   }
 
   // Delete a single field
@@ -111,8 +123,13 @@ class UserSessionService {
     }
   }
 
-  // Clear user session (logout)
+  // Clear user session (logout) — removes only session-related keys
   Future<void> clearSession() async {
-    await _prefs.clear();
+    await _prefs.remove(_keyIsLoggedIn);
+    await _prefs.remove(_keyUserId);
+    await _prefs.remove(_keyUserEmail);
+    await _prefs.remove(_keyUserRole);
+    await _prefs.remove(_keyThemeMode);
+    await _prefs.remove(_keyAuthToken);
   }
 }

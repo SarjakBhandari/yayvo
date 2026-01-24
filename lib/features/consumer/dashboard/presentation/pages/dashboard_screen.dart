@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-
+import 'package:yayvo/features/consumer/profile/presentation/pages/profile_screen.dart';
 import 'dashboard_screens/add_review_screen.dart';
 import 'dashboard_screens/collections_screen.dart';
 import 'dashboard_screens/consumer_home_screen.dart';
 import 'dashboard_screens/explore_screen.dart';
-import 'dashboard_screens/profile_screen.dart';
 
 class HomeFeed extends StatefulWidget {
   const HomeFeed({super.key});
