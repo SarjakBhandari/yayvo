@@ -1,231 +1,357 @@
-import 'dart:io';
-
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:yayvo/features/auth/domain/entities/consumer_entity.dart';
+
+import 'package:yayvo/core/providers/theme_provider.dart';
 import 'package:yayvo/core/services/storage/user_session_service.dart';
+import 'package:yayvo/features/auth/domain/entities/consumer_entity.dart';
 import 'package:yayvo/features/auth/presentation/pages/login_page.dart';
-import 'package:yayvo/features/consumer/profile/presentation/widgets/change_password.dart';
-import 'package:yayvo/features/consumer/profile/presentation/widgets/edit_profile.dart';
-import 'package:yayvo/features/consumer/profile/presentation/widgets/profile_part.dart';
-import 'package:yayvo/features/consumer/profile/presentation/widgets/theme_selector.dart';
+import 'package:yayvo/features/consumer/profile/domain/usecases/get_consumer_usecase.dart';
+import 'package:yayvo/features/consumer/profile/domain/usecases/update_consumer_usecase.dart';
+import 'package:yayvo/features/consumer/profile/domain/usecases/upload_profile_picture_usecase.dart';
+
+import '../widgets/edit_profile.dart';
+import '../widgets/profile_part.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
-  final Future<ConsumerEntity> Function(ConsumerEntity updated)? onUpdateUser;
-  final Future<ConsumerEntity> Function(File pickedImage)? onUploadProfilePicture;
-  final Future<void> Function(String current, String next)? onChangePassword;
-  final Future<void> Function()? onLogout;
-
-  const ProfileScreen({
-    Key? key,
-    this.onUpdateUser,
-    this.onUploadProfilePicture,
-    this.onChangePassword,
-    this.onLogout,
-  }) : super(key: key);
+  const ProfileScreen({super.key});
 
   @override
   ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
 }
 
 class _ProfileScreenState extends ConsumerState<ProfileScreen> {
-  late ConsumerEntity _user;
-  final ImagePicker _picker = ImagePicker();
-  bool _loading = false;
+  ConsumerEntity? _consumer;
+  bool _loading = true;
   String? _error;
 
   @override
   void initState() {
     super.initState();
-    _user = const ConsumerEntity(
-      fullName: 'Guest User',
-      username: 'guest',
-      profilePicture: null,
-    );
+    _loadProfile();
   }
 
-  Future<void> _pickAndUpload(ImageSource source) async {
-    try {
-      final XFile? picked = await _picker.pickImage(source: source);
-      if (picked == null) return;
-      final file = File(picked.path);
+  // ================= LOAD PROFILE =================
+  Future<void> _loadProfile() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
 
-      final confirmed = await showDialog<bool>(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: const Text('Use this photo?'),
-          content: Image.file(file, width: 200, height: 200, fit: BoxFit.cover),
-          actions: [
-            TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('Cancel')),
-            TextButton(onPressed: () => Navigator.of(ctx).pop(true), child: const Text('Use')),
-          ],
+    try {
+      // Defensive read: ensure provider returns the expected type
+      final sessionService = ref.read(userSessionServiceProvider);
+      debugPrint('ProfileScreen: userSessionServiceProvider returned: $sessionService');
+
+      if (sessionService == null) {
+        throw Exception('Session service not available');
+      }
+
+      final session = sessionService.getUserSession();
+      final authId = session?.userId;
+      if (authId == null) {
+        throw Exception('User not authenticated');
+      }
+
+      final consumer = await ref.read(getConsumerUseCaseProvider)(authId);
+
+      if (!mounted) return;
+
+      if (consumer == null) {
+        throw Exception('Failed to load consumer data');
+      }
+
+      setState(() {
+        _consumer = consumer;
+        _error = null;
+      });
+    } catch (e, st) {
+      if (!mounted) return;
+      debugPrint('ProfileScreen: load error: $e\n$st');
+      setState(() {
+        _error = e.toString();
+        _consumer = null;
+      });
+    } finally {
+      if (!mounted) return;
+      setState(() {
+        _loading = false;
+      });
+    }
+  }
+
+  // ================= UPDATE PROFILE =================
+  Future<void> _updateProfile(ConsumerEntity consumer) async {
+    try {
+      final updated = await ref.read(updateConsumerUseCaseProvider)(consumer);
+
+      if (!mounted) return;
+
+      if (updated == null) {
+        ScaffoldMessenger.of(context).clearSnackBars();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Update failed: no data returned'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+
+      setState(() => _consumer = updated);
+
+      ScaffoldMessenger.of(context).clearSnackBars();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Profile updated successfully'),
+          backgroundColor: Colors.green,
         ),
       );
-
-      if (confirmed != true) return;
-
-      setState(() => _loading = true);
-
-      if (widget.onUploadProfilePicture != null) {
-        final updated = await widget.onUploadProfilePicture!(file);
-        setState(() => _user = updated);
-      } else {
-        setState(() => _user = _user.copyWith(profilePicture: file.path));
-      }
-
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Profile picture updated')));
     } catch (e) {
-      setState(() => _error = e.toString());
-    } finally {
-      setState(() => _loading = false);
+      debugPrint('ProfileScreen: update error: $e');
+      ScaffoldMessenger.of(context).clearSnackBars();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Update failed: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
-  Future<void> _showImageSourceOptions() async {
-    final choice = await showModalBottomSheet<String?>(
+  // ================= UPLOAD PROFILE PICTURE =================
+  Future<void> _uploadPicture() async {
+    final picker = ImagePicker();
+
+    final source = await showModalBottomSheet<ImageSource>(
       context: context,
-      builder: (ctx) => SafeArea(
-        child: Wrap(
+      builder: (_) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            ListTile(leading: const Icon(Icons.photo_library), title: const Text('Choose from gallery'), onTap: () => Navigator.of(ctx).pop('gallery')),
-            ListTile(leading: const Icon(Icons.camera_alt), title: const Text('Take a photo'), onTap: () => Navigator.of(ctx).pop('camera')),
-            ListTile(leading: const Icon(Icons.close), title: const Text('Cancel'), onTap: () => Navigator.of(ctx).pop(null)),
+            ListTile(
+              leading: const Icon(Icons.camera_alt),
+              title: const Text('Camera'),
+              onTap: () => Navigator.pop(context, ImageSource.camera),
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: const Text('Gallery'),
+              onTap: () => Navigator.pop(context, ImageSource.gallery),
+            ),
           ],
         ),
       ),
     );
 
-    if (choice == 'gallery') await _pickAndUpload(ImageSource.gallery);
-    if (choice == 'camera') await _pickAndUpload(ImageSource.camera);
-  }
+    if (source == null) return;
 
-  Future<void> _saveDetails(ConsumerEntity updated) async {
-    setState(() => _loading = true);
-    try {
-      if (widget.onUpdateUser != null) {
-        final saved = await widget.onUpdateUser!(updated);
-        setState(() => _user = saved);
-      } else {
-        setState(() => _user = updated);
-      }
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Profile updated')));
-    } catch (e) {
-      setState(() => _error = e.toString());
-    } finally {
-      setState(() => _loading = false);
-    }
-  }
-
-  Future<void> _onChangePassword() async {
-    final result = await showDialog<PasswordChangeResult?>(
-      context: context,
-      builder: (ctx) => const ChangePasswordDialog(),
+    final image = await picker.pickImage(
+      source: source,
+      maxWidth: 512,
+      maxHeight: 512,
+      imageQuality: 85,
     );
-    if (result == null) return;
 
-    setState(() => _loading = true);
-    try {
-      if (widget.onChangePassword != null) {
-        await widget.onChangePassword!(result.current, result.next);
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Password changed')));
-      }
-    } catch (e) {
-      setState(() => _error = e.toString());
-    } finally {
-      setState(() => _loading = false);
+    if (image == null) return;
+
+    if (kDebugMode) {
+      debugPrint('Uploading image: ${image.path}');
     }
-  }
 
-  Future<void> _confirmAndLogout() async {
-    final shouldLogout = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Logout'),
-        content: const Text('Are you sure you want to logout?'),
-        actions: [
-          TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('Cancel')),
-          TextButton(onPressed: () => Navigator.of(ctx).pop(true), child: const Text('Logout')),
-        ],
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Row(
+          children: [
+            SizedBox(
+              width: 18,
+              height: 18,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+            SizedBox(width: 12),
+            Text('Uploading profile picture...')
+          ],
+        ),
+        duration: Duration(seconds: 30),
       ),
     );
 
-    if (shouldLogout != true) return;
-
-    setState(() => _loading = true);
     try {
-      if (widget.onLogout != null) {
-        await widget.onLogout!();
-      } else {
-        await ref.read(userSessionServiceProvider).clearSession();
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (_) => const LoginScreen()),
-              (route) => false,
+      final updated = await ref.read(uploadProfilePictureUseCaseProvider)(image);
+
+      if (!mounted) return;
+
+      if (updated == null) {
+        ScaffoldMessenger.of(context).clearSnackBars();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Upload failed: no data returned'),
+            backgroundColor: Colors.red,
+          ),
         );
+        return;
       }
+
+      setState(() => _consumer = updated);
+
+      ScaffoldMessenger.of(context).clearSnackBars();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Profile picture updated successfully'),
+          backgroundColor: Colors.green,
+        ),
+      );
     } catch (e) {
-      setState(() => _error = e.toString());
-    } finally {
-      setState(() => _loading = false);
+      debugPrint('ProfileScreen: upload error: $e');
+      ScaffoldMessenger.of(context).clearSnackBars();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Upload failed: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
+  // ================= LOGOUT =================
+  Future<void> _logout() async {
+    try {
+      await ref.read(userSessionServiceProvider).clearSession();
+    } catch (e) {
+      debugPrint('ProfileScreen: clearSession error: $e');
+    }
+
+    if (!mounted) return;
+
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
+          (_) => false,
+    );
+  }
+
+  // ================= UI =================
   @override
   Widget build(BuildContext context) {
+    if (_loading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (_error != null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Profile')),
+        body: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(_error!, textAlign: TextAlign.center),
+              const SizedBox(height: 12),
+              ElevatedButton(
+                onPressed: _loadProfile,
+                child: const Text('Retry'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (_consumer == null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Profile')),
+        body: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('No profile data available.'),
+              const SizedBox(height: 12),
+              ElevatedButton(
+                onPressed: _loadProfile,
+                child: const Text('Reload Profile'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    final consumer = _consumer!;
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Profile & Settings')),
-      body: SafeArea(
-        child: Stack(
-          children: [
-            ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                ProfilePart(user: _user, onTapCamera: _showImageSourceOptions),
-                const SizedBox(height: 16),
-                EditProfileSection(user: _user, onSave: _saveDetails),
-                const SizedBox(height: 16),
-                // ThemeSelector now handles currentMode and notifier internally
-                const ThemeSelector(),
-                const SizedBox(height: 12),
-                ListTile(
-                  leading: const Icon(Icons.lock),
-                  title: const Text('Change password'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: _onChangePassword,
+      appBar: AppBar(title: const Text('Profile')),
+      body: RefreshIndicator(
+        onRefresh: _loadProfile,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              ProfilePart(
+                user: consumer,
+                onTapCamera: _uploadPicture,
+              ),
+              const SizedBox(height: 20),
+              EditProfileSection(
+                user: consumer,
+                onSave: _updateProfile,
+              ),
+              const SizedBox(height: 20),
+              _buildTheme(),
+              const SizedBox(height: 20),
+              ElevatedButton.icon(
+                onPressed: _logout,
+                icon: const Icon(Icons.logout),
+                label: const Text('Logout'),
+                style: ElevatedButton.styleFrom(
+                  foregroundColor: Colors.red,
+                  minimumSize: const Size.fromHeight(48),
                 ),
-                const SizedBox(height: 20),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    icon: const Icon(Icons.logout),
-                    label: const Text('Logout'),
-                    onPressed: _confirmAndLogout,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTheme() {
+    final mode = ref.watch(themeModeProvider);
+    final notifier = ref.read(themeModeProvider.notifier);
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          children: [
+            const Text('Theme'),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () => notifier.setThemeMode(ThemeMode.light),
+                    child: const Text('Light'),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () => notifier.setThemeMode(ThemeMode.dark),
+                    child: const Text('Dark'),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => notifier.setThemeMode(ThemeMode.system),
+                    child: const Text('System'),
                   ),
                 ),
               ],
             ),
-            if (_loading)
-              const Positioned(
-                left: 0,
-                right: 0,
-                top: 0,
-                child: LinearProgressIndicator(),
-              ),
-            if (_error != null)
-              Positioned(
-                left: 16,
-                right: 16,
-                bottom: 24,
-                child: Material(
-                  elevation: 6,
-                  borderRadius: BorderRadius.circular(8),
-                  color: Colors.red,
-                  child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Text(_error!, style: const TextStyle(color: Colors.white)),
-                  ),
-                ),
-              ),
           ],
         ),
       ),

@@ -3,9 +3,13 @@ import 'package:yayvo/features/auth/domain/entities/consumer_entity.dart';
 
 class EditProfileSection extends StatefulWidget {
   final ConsumerEntity user;
-  final Future<void> Function(ConsumerEntity updated) onSave;
+  final Future<void> Function(ConsumerEntity updated)? onSave;
 
-  const EditProfileSection({Key? key, required this.user, required this.onSave}) : super(key: key);
+  const EditProfileSection({
+    Key? key,
+    required this.user,
+    required this.onSave,
+  }) : super(key: key);
 
   @override
   State<EditProfileSection> createState() => _EditProfileSectionState();
@@ -27,8 +31,12 @@ class _EditProfileSectionState extends State<EditProfileSection> {
   @override
   void didUpdateWidget(covariant EditProfileSection oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.user.fullName != widget.user.fullName) _nameCtrl.text = widget.user.fullName;
-    if (oldWidget.user.username != widget.user.username) _usernameCtrl.text = widget.user.username;
+    if (oldWidget.user.fullName != widget.user.fullName) {
+      _nameCtrl.text = widget.user.fullName;
+    }
+    if (oldWidget.user.username != widget.user.username) {
+      _usernameCtrl.text = widget.user.username;
+    }
   }
 
   @override
@@ -40,10 +48,27 @@ class _EditProfileSectionState extends State<EditProfileSection> {
 
   Future<void> _onSave() async {
     if (!_formKey.currentState!.validate()) return;
+    if (widget.onSave == null) return;
+
     setState(() => _saving = true);
-    final updated = widget.user.copyWith(fullName: _nameCtrl.text.trim(), username: _usernameCtrl.text.trim());
-    await widget.onSave(updated);
-    setState(() => _saving = false);
+
+    try {
+      final updated = widget.user.copyWith(
+        fullName: _nameCtrl.text.trim(),
+        username: _usernameCtrl.text.trim(),
+      );
+      await widget.onSave!(updated);
+    } catch (e) {
+      // Error is handled by parent, just ensure we reset the state
+      if (mounted) {
+        setState(() => _saving = false);
+      }
+      rethrow;
+    }
+
+    if (mounted) {
+      setState(() => _saving = false);
+    }
   }
 
   @override
@@ -57,17 +82,41 @@ class _EditProfileSectionState extends State<EditProfileSection> {
           key: _formKey,
           child: Column(
             children: [
-              Align(alignment: Alignment.centerLeft, child: Text('Change details', style: Theme.of(context).textTheme.titleMedium)),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Change details',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ),
               const SizedBox(height: 8),
-              TextFormField(controller: _nameCtrl, decoration: const InputDecoration(labelText: 'Full name'), validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null),
+              TextFormField(
+                controller: _nameCtrl,
+                decoration: const InputDecoration(labelText: 'Full name'),
+                validator: (v) => (v == null || v.trim().isEmpty)
+                    ? 'Required'
+                    : null,
+              ),
               const SizedBox(height: 8),
-              TextFormField(controller: _usernameCtrl, decoration: const InputDecoration(labelText: 'Username'), validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null),
+              TextFormField(
+                controller: _usernameCtrl,
+                decoration: const InputDecoration(labelText: 'Username'),
+                validator: (v) => (v == null || v.trim().isEmpty)
+                    ? 'Required'
+                    : null,
+              ),
               const SizedBox(height: 12),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: _saving ? null : _onSave,
-                  child: _saving ? const SizedBox(height: 16, width: 16, child: CircularProgressIndicator(strokeWidth: 2)) : const Text('Save changes'),
+                  onPressed: _saving || widget.onSave == null ? null : _onSave,
+                  child: _saving
+                      ? const SizedBox(
+                    height: 16,
+                    width: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                      : const Text('Save changes'),
                 ),
               ),
             ],

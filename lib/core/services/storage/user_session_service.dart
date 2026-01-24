@@ -1,12 +1,13 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-// SharedPreferences instance provider
+/// Provider declarations (kept here for convenience)
 final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
+  // This must be overridden in main.dart
   throw UnimplementedError('SharedPreferences must be overridden in main.dart');
 });
 
-// UserSessionService provider
 final userSessionServiceProvider = Provider<UserSessionService>((ref) {
   final prefs = ref.read(sharedPreferencesProvider);
   return UserSessionService(prefs: prefs);
@@ -92,12 +93,10 @@ class UserSessionService {
   }
 
   // ===== Theme mode =====
-  /// Save theme mode as a simple string: 'light', 'dark', or 'system'
   Future<void> saveThemeMode(String mode) async {
     await _prefs.setString(_keyThemeMode, mode);
   }
 
-  /// Returns saved theme mode string or null if not set
   String? getThemeMode() => _prefs.getString(_keyThemeMode);
 
   // ===== Auth token =====

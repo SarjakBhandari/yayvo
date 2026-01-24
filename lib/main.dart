@@ -15,15 +15,21 @@ Future<void> main() async {
 
   // Initialize SharedPreferences
   final prefs = await SharedPreferences.getInstance();
+  debugPrint('main: SharedPreferences initialized, keys=${prefs.getKeys().length}');
+
+  // Create UserSessionService instance
+  final userSessionService = UserSessionService(prefs: prefs);
+  debugPrint('main: UserSessionService created: $userSessionService');
 
   runApp(
     ProviderScope(
       overrides: [
-        // Override providers with actual instances
+        // Provide the real SharedPreferences instance
         sharedPreferencesProvider.overrideWithValue(prefs),
+        // Provide Hive service if you use it elsewhere
         hiveServiceProvider.overrideWithValue(hiveService),
-        // If you have a userSessionServiceProvider, you can override it here too
-        // userSessionServiceProvider.overrideWithValue(UserSessionService(prefs)),
+        // Provide the real UserSessionService instance
+        userSessionServiceProvider.overrideWithValue(userSessionService),
       ],
       child: const MyApp(),
     ),

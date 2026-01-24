@@ -10,29 +10,22 @@ class ThemeSelector extends ConsumerWidget {
     final currentMode = ref.watch(themeModeProvider);
     final notifier = ref.read(themeModeProvider.notifier);
 
-    Widget _button({
-      required String label,
-      required ThemeMode mode,
-      required ButtonStyle style,
-      required VoidCallback onPressed,
-    }) {
-      return Expanded(
-        child: ElevatedButton(
-          onPressed: onPressed,
-          style: style,
-          child: Text(label),
-        ),
-      );
-    }
-
     final primary = Theme.of(context).colorScheme.primary;
+    final onPrimary = Theme.of(context).colorScheme.onPrimary;
+
+    // Fixed: Using consistent button styling
     final lightStyle = ElevatedButton.styleFrom(
       backgroundColor: currentMode == ThemeMode.light ? primary : null,
+      foregroundColor: currentMode == ThemeMode.light ? onPrimary : null,
     );
     final darkStyle = ElevatedButton.styleFrom(
       backgroundColor: currentMode == ThemeMode.dark ? primary : null,
+      foregroundColor: currentMode == ThemeMode.dark ? onPrimary : null,
     );
-    final systemStyle = OutlinedButton.styleFrom();
+    final systemStyle = ElevatedButton.styleFrom(
+      backgroundColor: currentMode == ThemeMode.system ? primary : null,
+      foregroundColor: currentMode == ThemeMode.system ? onPrimary : null,
+    );
 
     return Card(
       margin: EdgeInsets.zero,
@@ -46,37 +39,28 @@ class ThemeSelector extends ConsumerWidget {
             const SizedBox(height: 8),
             Row(
               children: [
-                _button(
-                  label: 'Light',
-                  mode: ThemeMode.light,
-                  style: lightStyle,
-                  onPressed: () => notifier.setThemeMode(ThemeMode.light),
-                ),
-                const SizedBox(width: 8),
-                _button(
-                  label: 'Dark',
-                  mode: ThemeMode.dark,
-                  style: darkStyle,
-                  onPressed: () => notifier.setThemeMode(ThemeMode.dark),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () => notifier.setThemeMode(ThemeMode.light),
+                    style: lightStyle,
+                    child: const Text('Light'),
+                  ),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: OutlinedButton(
+                  child: ElevatedButton(
+                    onPressed: () => notifier.setThemeMode(ThemeMode.dark),
+                    style: darkStyle,
+                    child: const Text('Dark'),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: ElevatedButton(
                     onPressed: () => notifier.setThemeMode(ThemeMode.system),
                     style: systemStyle,
                     child: const Text('System'),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                const Spacer(),
-                IconButton(
-                  tooltip: currentMode == ThemeMode.dark ? 'Switch to light' : 'Switch to dark',
-                  icon: Icon(currentMode == ThemeMode.dark ? Icons.dark_mode : Icons.light_mode),
-                  onPressed: () => notifier.toggleTheme(),
                 ),
               ],
             ),
