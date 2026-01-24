@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:yayvo/features/consumer/dashboard/presentation/pages/dashboard_screen.dart';
 import 'package:yayvo/features/onboarding/presentation/pages/starting_onboarding_screen.dart';
 import 'package:yayvo/core/widgets/my_logo.dart';
-import 'package:yayvo/screens/consumer/dashboard_screen.dart';
-import 'package:yayvo/screens/consumer/dashboard_screens/consumer_home_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});

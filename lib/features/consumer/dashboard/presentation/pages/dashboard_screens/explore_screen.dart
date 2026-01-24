@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-
-import '../../../models/product_model.dart';
-import '../../../models/sentiment_model.dart';
+import 'package:yayvo/features/products/product_model.dart';
+import 'package:yayvo/features/sentiments/sentiment_model.dart';
 
 // Sample data
 final trendingProducts = [

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:yayvo/screens/onboarding/ready_onboarding_screen.dart';
+import 'package:yayvo/core/widgets/followers_card.dart';
 import 'package:yayvo/core/widgets/my_button.dart';
+import 'package:yayvo/features/consumer/onBoarding/presentation/onboarding/ready_onboarding_screen.dart';
 
-import '../../core/widgets/followers_card.dart';
 
 class FollowSuggestionsScreen extends StatefulWidget {
   const FollowSuggestionsScreen({super.key});

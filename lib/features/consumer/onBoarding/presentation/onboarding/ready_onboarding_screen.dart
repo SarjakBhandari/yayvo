@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:yayvo/screens/consumer/dashboard_screen.dart';
 import 'package:yayvo/core/widgets/my_button.dart';
+import 'package:yayvo/features/consumer/dashboard/presentation/pages/dashboard_screen.dart';
 
 class ReadyPage extends StatelessWidget {
   const ReadyPage({super.key});

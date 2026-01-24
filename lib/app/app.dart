@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:yayvo/screens/consumer/dashboard_screen.dart';
-import 'package:yayvo/features/onboarding/presentation/pages/welcome_screen.dart';
 import 'package:yayvo/features/splash/presentation/pages/splash_screen.dart';
 
 

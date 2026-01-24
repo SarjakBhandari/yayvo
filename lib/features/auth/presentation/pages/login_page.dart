@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yayvo/core/utils/show_my_snack_bar.dart';
 import 'package:yayvo/features/auth/presentation/view_model/auth_viewmodel.dart';
-import 'package:yayvo/screens/onboarding/interests_onboarding_screen.dart';
 import 'package:yayvo/core/widgets/my_button.dart';
 import 'package:yayvo/core/widgets/my_logo.dart';
 import 'package:yayvo/core/widgets/my_text_form_field.dart';
 import 'package:yayvo/features/auth/presentation/state/auth_state.dart';
 import 'package:yayvo/features/auth/data/models/user_type.dart';
-import 'package:yayvo/screens/retailer/dashboard_screen.dart';
+import 'package:yayvo/features/retailer/dashboard/presentation/dashboard_screen.dart';
 
+import '../../../consumer/onBoarding/presentation/onboarding/interests_onboarding_screen.dart';
 import '../../../onboarding/presentation/pages/welcome_screen.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {

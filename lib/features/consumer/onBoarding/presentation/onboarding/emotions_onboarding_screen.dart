@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:yayvo/screens/onboarding/follower_onboarding_screen.dart';
 import 'package:yayvo/core/widgets/my_button.dart';
+
+import 'follower_onboarding_screen.dart';
 
 class EmotionPreferencesScreen extends StatefulWidget {
   const EmotionPreferencesScreen({super.key});

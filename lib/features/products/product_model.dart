@@ -1,4 +1,4 @@
-import 'package:yayvo/models/sentiment_model.dart';
+import 'package:yayvo/features/sentiments/sentiment_model.dart';
 
 class Product {
   final String id;
