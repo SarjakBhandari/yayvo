@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive/hive.dart';
 import 'package:yayvo/core/constants/hive_table_constants.dart';
 import 'package:yayvo/core/services/hive/hive_service.dart';
+import 'package:yayvo/core/services/storage/user_session_service.dart';
 import 'package:yayvo/features/auth/data/datasources/auth_datasource.dart';
 import 'package:yayvo/features/auth/data/models/auth_hive_model.dart';
 import 'package:yayvo/features/auth/data/models/consumer_hive_model.dart';
@@ -10,14 +11,22 @@ import 'package:yayvo/features/auth/data/models/user_type.dart';
 
 final authLocalDatasourceProvider = Provider<AuthLocalDatasource>((ref) {
   final hiveService = ref.read(hiveServiceProvider);
-  return AuthLocalDatasource(hiveService: hiveService);
+  final userSessionService = ref.read(userSessionServiceProvider); // <-- FIXED
+  return AuthLocalDatasource(
+    hiveService: hiveService,
+    userSessionService: userSessionService, // <-- pass the instance, not the provider
+  );
 });
 
 class AuthLocalDatasource implements IAuthLocalDataSource {
   final HiveService _hiveService;
+  final UserSessionService _userSessionService;
 
-  AuthLocalDatasource({required HiveService hiveService})
-      : _hiveService = hiveService;
+  AuthLocalDatasource({
+    required HiveService hiveService,
+    required UserSessionService userSessionService, // <-- FIXED type
+  })  : _hiveService = hiveService,
+        _userSessionService = userSessionService;
 
   // ---------- Auth ----------
   @override
@@ -34,22 +43,26 @@ class AuthLocalDatasource implements IAuthLocalDataSource {
   }
 
   @override
-  Future<AuthHiveModel?> login(
-      String email,
-      String passwordHash,
-      ) async {
+  Future<AuthHiveModel?> login(String email, String passwordHash) async {
     try {
-      return _hiveService.login(email, passwordHash);
+      final user = await _hiveService.login(email, passwordHash);
+      if (user != null) {
+        await _userSessionService.saveUserSession(
+          UserSession(
+            userId: user.authId!,
+            email: user.email,
+            role: user.role,
+          ),
+        );
+      }
+      return user;
     } catch (_) {
       return null;
     }
   }
 
   @override
-  Future<AuthHiveModel?> getUserById(
-      String authId,
-      UserType userType,
-      ) async {
+  Future<AuthHiveModel?> getUserById(String authId, UserType userType) async {
     try {
       return _hiveService.getUserById(authId, userType.name);
     } catch (_) {
@@ -58,10 +71,7 @@ class AuthLocalDatasource implements IAuthLocalDataSource {
   }
 
   @override
-  Future<AuthHiveModel?> getUserByEmail(
-      String email,
-      UserType userType,
-      ) async {
+  Future<AuthHiveModel?> getUserByEmail(String email, UserType userType) async {
     try {
       return _hiveService.getUserByEmail(email, userType.name);
     } catch (_) {
@@ -76,10 +86,8 @@ class AuthLocalDatasource implements IAuthLocalDataSource {
 
       if (updated) {
         if (user.role == UserType.consumer.name && user.consumer != null) {
-          // update consumer record instead of re-registering
           await _hiveService.updateConsumer(user.consumer!);
         } else if (user.role == UserType.retailer.name && user.retailer != null) {
-          // update retailer record instead of re-registering
           await _hiveService.updateRetailer(user.retailer!);
         }
       }
@@ -91,10 +99,7 @@ class AuthLocalDatasource implements IAuthLocalDataSource {
   }
 
   @override
-  Future<bool> deleteUser(
-      String authId,
-      UserType userType,
-      ) async {
+  Future<bool> deleteUser(String authId, UserType userType) async {
     try {
       await _hiveService.deleteUser(authId, userType.name);
 
@@ -133,6 +138,7 @@ class AuthLocalDatasource implements IAuthLocalDataSource {
     try {
       final box = Hive.box<AuthHiveModel>(HiveTableConstants.authTable);
       await box.clear();
+      await _userSessionService.clearSession(); // <-- clears SharedPreferences
       return true;
     } catch (_) {
       return false;
