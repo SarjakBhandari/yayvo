@@ -8,7 +8,6 @@ import 'package:yayvo/features/auth/domain/usecases/login_usecase.dart';
 import 'package:yayvo/features/auth/domain/usecases/logout_user_usecase.dart';
 import 'package:yayvo/features/auth/domain/usecases/register_user_usecase.dart';
 import 'package:yayvo/features/auth/presentation/state/auth_state.dart';
-import 'package:yayvo/features/auth/data/models/user_type.dart';
 
 /// Provider for AuthViewModel
 final authViewModelProvider = NotifierProvider<AuthViewModel, AuthState>(
