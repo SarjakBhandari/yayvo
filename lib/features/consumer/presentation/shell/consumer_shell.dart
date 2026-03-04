@@ -13,6 +13,7 @@ import 'package:yayvo/features/consumer/presentation/pages/consumer_collection_s
 import 'package:yayvo/core/services/sensors/sensor_service.dart';
 import 'package:yayvo/core/services/sensors/shake_detector.dart';
 import 'package:yayvo/core/services/storage/user_session_service.dart';
+import 'package:proximity_sensor/proximity_sensor.dart';
 
 final currentConsumerRouteProvider =
     StateProvider<ConsumerRoute>((ref) => ConsumerRoute.home);
@@ -45,7 +46,16 @@ class _ConsumerShellState extends ConsumerState<ConsumerShell> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _restoreConsumerAuth();
       _initShakeDetector();
+      _initProximityScreenOff();
     });
+  }
+
+  Future<void> _initProximityScreenOff() async {
+    try {
+      await ProximitySensor.setProximityScreenOff(true);
+    } catch (_) {
+      // Not supported on this platform or device (e.g. iOS, emulator)
+    }
   }
 
   void _restoreConsumerAuth() {
@@ -65,7 +75,7 @@ class _ConsumerShellState extends ConsumerState<ConsumerShell> {
         if (!mounted) return;
         ref.read(reloadTriggerProvider.notifier).state++;
       },
-      thresholdGravity: 2.7,
+      thresholdGravity: 18.0,
       slopTimeMs: 500,
     )..startListening(sensor.accelerometer);
   }
@@ -85,7 +95,7 @@ class _ConsumerShellState extends ConsumerState<ConsumerShell> {
     final isWide = MediaQuery.sizeOf(context).width >= 600;
 
     return Scaffold(
-      backgroundColor: ConsumerTheme.background,
+      backgroundColor: ConsumerTheme.backgroundOf(context),
       body: SafeArea(
         child: Padding(
           padding: EdgeInsets.fromLTRB(
@@ -99,7 +109,7 @@ class _ConsumerShellState extends ConsumerState<ConsumerShell> {
       ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
-          color: ConsumerTheme.surface,
+          color: ConsumerTheme.surfaceOf(context),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.06),
@@ -133,7 +143,7 @@ class _ConsumerShellState extends ConsumerState<ConsumerShell> {
                               size: 24,
                               color: selected
                                   ? ConsumerTheme.accent
-                                  : ConsumerTheme.muted,
+                                  : ConsumerTheme.mutedOf(context),
                             ),
                             const SizedBox(height: 4),
                             Text(
@@ -143,7 +153,7 @@ class _ConsumerShellState extends ConsumerState<ConsumerShell> {
                                 fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
                                 color: selected
                                     ? ConsumerTheme.accent
-                                    : ConsumerTheme.muted,
+                                    : ConsumerTheme.mutedOf(context),
                               ),
                             ),
                           ],

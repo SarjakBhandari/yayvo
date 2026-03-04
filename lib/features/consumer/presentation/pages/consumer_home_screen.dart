@@ -9,6 +9,8 @@ import 'package:yayvo/features/consumer/presentation/theme/consumer_theme.dart';
 import 'package:yayvo/features/consumer/presentation/widgets/review_card.dart';
 import 'package:yayvo/features/consumer/presentation/widgets/review_detail_dialog.dart';
 import 'package:yayvo/core/utils/network_error_helper.dart';
+import 'package:yayvo/core/services/connectivity/network_info.dart';
+import 'package:yayvo/features/consumer/presentation/providers/consumer_providers.dart';
 
 final getReviewsPaginatedProvider = Provider<GetReviewsPaginated>((ref) {
   return GetReviewsPaginated(ref.read(reviewRepositoryProvider));
@@ -121,6 +123,15 @@ class _ConsumerHomeScreenState extends ConsumerState<ConsumerHomeScreen> {
   @override
   Widget build(BuildContext context) {
     final authId = ref.watch(consumerAuthIdProvider);
+    final currentUser = authId != null && authId.isNotEmpty
+        ? ref.watch(consumerByAuthIdProvider(authId)).value
+        : null;
+    final isOnlineAsync = ref.watch(isOnlineProvider);
+    final isOnline = isOnlineAsync.value ?? false;
+
+    ref.listen(reloadTriggerProvider, (prev, next) {
+      if (prev != next && next > 0) _loadPage(1);
+    });
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -131,7 +142,7 @@ class _ConsumerHomeScreenState extends ConsumerState<ConsumerHomeScreen> {
           style: TextStyle(
             fontSize: 11,
             fontWeight: FontWeight.w500,
-            color: ConsumerTheme.muted,
+            color: ConsumerTheme.mutedOf(context),
             letterSpacing: 0.14,
           ),
         ),
@@ -141,7 +152,7 @@ class _ConsumerHomeScreenState extends ConsumerState<ConsumerHomeScreen> {
           style: TextStyle(
             fontSize: 34,
             fontWeight: FontWeight.w700,
-            color: ConsumerTheme.primaryText,
+            color: ConsumerTheme.primaryTextOf(context),
             letterSpacing: -0.03,
           ),
         ),
@@ -152,7 +163,7 @@ class _ConsumerHomeScreenState extends ConsumerState<ConsumerHomeScreen> {
               '${_reviews.length} review${_reviews.length == 1 ? '' : 's'}',
               style: TextStyle(
                 fontSize: 12,
-                color: ConsumerTheme.muted,
+                color: ConsumerTheme.mutedOf(context),
               ),
             ),
           ),
@@ -194,6 +205,8 @@ class _ConsumerHomeScreenState extends ConsumerState<ConsumerHomeScreen> {
                               }
                               final review = _reviews[i];
                               final isSaved = _savedReviewIds.contains(review.id);
+                              final isOwnReview = authId != null && review.authorId == authId;
+                              final authorDisplayName = isOwnReview ? currentUser?.displayName : null;
                               final width = MediaQuery.sizeOf(context).width;
                               final maxW = width > 600 ? 480.0 : 380.0;
                               return Padding(
@@ -204,9 +217,19 @@ class _ConsumerHomeScreenState extends ConsumerState<ConsumerHomeScreen> {
                                     child: ReviewCard(
                                       review: review,
                                       currentUserId: authId,
+                                      authorName: authorDisplayName,
                                       isSaved: isSaved,
-                                      onTap: (r, authorName) =>
-                                          ReviewDetailDialog.show(context, r, authorName: authorName),
+                                      isOnline: isOnline,
+                                      onTap: (r, authorName) async {
+                                        final connected = await ref.read(networkInfoProvider).isConnected;
+                                        if (!mounted) return;
+                                        ReviewDetailDialog.show(
+                                          context,
+                                          r,
+                                          authorName: authorName,
+                                          isOnline: connected,
+                                        );
+                                      },
                                       onLikeChanged: () {},
                                       onLikeChangedWithState: (isNowLiked) {
                                         if (!mounted || authId == null) return;

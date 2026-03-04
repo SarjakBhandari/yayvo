@@ -11,6 +11,11 @@ final networkInfoProvider = Provider<NetworkInfo>((ref) {
   return NetworkInfo(Connectivity());
 }); // Provider
 
+/// Current connectivity for UI (e.g. disable like when offline). Refreshes when read.
+final isOnlineProvider = FutureProvider.autoDispose<bool>((ref) async {
+  return ref.read(networkInfoProvider).isConnected;
+});
+
 class NetworkInfo implements INetworkInfo {
   final Connectivity _connectivity;
 
