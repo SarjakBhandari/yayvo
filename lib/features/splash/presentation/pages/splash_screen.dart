@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:yayvo/features/consumer/dashboard/presentation/pages/dashboard_screen.dart';
+import 'package:yayvo/features/consumer/presentation/shell/consumer_shell.dart';
 import 'package:yayvo/features/onboarding/presentation/pages/starting_onboarding_screen.dart';
 import 'package:yayvo/core/widgets/my_logo.dart';
 
@@ -30,7 +30,7 @@ class _SplashScreenState extends State<SplashScreen> {
     if (isLoggedIn) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const HomeFeed()),
+        MaterialPageRoute(builder: (context) => const ConsumerShell()),
       );
     } else {
       Navigator.pushReplacement(
@@ -56,7 +56,7 @@ class _SplashScreenState extends State<SplashScreen> {
               style: theme.textTheme.titleMedium?.copyWith(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
-                color: theme.colorScheme.onBackground,
+                color: theme.colorScheme.onSurface,
               ),
             ),
             const SizedBox(height: 10),

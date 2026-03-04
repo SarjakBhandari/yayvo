@@ -7,10 +7,9 @@ import 'package:yayvo/core/widgets/my_logo.dart';
 import 'package:yayvo/core/widgets/my_text_form_field.dart';
 import 'package:yayvo/features/auth/presentation/state/auth_state.dart';
 import 'package:yayvo/features/auth/data/models/user_type.dart';
+import 'package:yayvo/features/consumer/presentation/shell/consumer_shell.dart';
 import 'package:yayvo/features/retailer/dashboard/presentation/dashboard_screen.dart';
-
-import '../../../consumer/onBoarding/presentation/onboarding/interests_onboarding_screen.dart';
-import '../../../onboarding/presentation/pages/welcome_screen.dart';
+import 'package:yayvo/features/onboarding/presentation/pages/welcome_screen.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -46,11 +45,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           status: SnackBarStatus.success,
         );
 
-        // Check userType and navigate accordingly
         if (next.user!.role == UserType.consumer) {
+          ref.read(consumerAuthIdProvider.notifier).state = next.user!.authId;
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (_) => const InterestsScreen()),
+            MaterialPageRoute(builder: (_) => const ConsumerShell()),
           );
         } else if (next.user!.role == UserType.retailer) {
           Navigator.pushReplacement(
@@ -60,7 +59,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         }
       }
     });
-
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -77,7 +75,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   "Welcome Back!",
                   style: theme.textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.bold,
-                    color: theme.colorScheme.onBackground,
+                    color: theme.colorScheme.onSurface,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -151,10 +149,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   child: MyButton(
                     onPressed: () {
                       if (_formKey.currentState!.validate()) {
-                        ref.read(authViewModelProvider.notifier).login(
-                          email: _emailController.text.trim(),
-                          password: _passwordController.text.trim(),
-                        );
+                        ref
+                            .read(authViewModelProvider.notifier)
+                            .login(
+                              email: _emailController.text.trim(),
+                              password: _passwordController.text.trim(),
+                            );
                       }
                     },
                     text: authState.status == AuthStatus.loading

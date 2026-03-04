@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+/// App logo used on splash, login, register, and welcome screens.
+/// Prefers assets/images/logo.png (same as app icon and native splash); falls back to logo.jpg if needed.
 class MyLogo extends StatelessWidget {
   final double size;
   final double? radius;
@@ -9,6 +11,9 @@ class MyLogo extends StatelessWidget {
     required this.size,
     this.radius,
   });
+
+  static const String _assetPath = 'assets/images/logo.png';
+  static const String _assetPathFallback = 'assets/images/logo.jpg';
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +31,21 @@ class MyLogo extends StatelessWidget {
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(radius ?? 24),
-        child: Image.asset('assets/images/logo.jpg'),
+        child: Image.asset(
+          _assetPath,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => Image.asset(
+            _assetPathFallback,
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => Center(
+              child: Icon(
+                Icons.image_not_supported_outlined,
+                size: size * 0.5,
+                color: theme.colorScheme.outline,
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
