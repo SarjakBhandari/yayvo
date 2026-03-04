@@ -18,4 +18,14 @@ class HiveTableConstants {
 
   // ======================= UserType Enum =========================
   static const int userTypeId = 4; // adapter for UserType enum
+
+  // ======================= Consumer feature cache =========================
+  static const int reviewCacheTypeId = 5;
+  static const String reviewCacheTable = 'review_cache_table';
+  static const int productCacheTypeId = 6;
+  static const String productCacheTable = 'product_cache_table';
+  static const int consumerProfileCacheTypeId = 7;
+  static const String consumerProfileCacheTable = 'consumer_profile_cache_table';
+
+  static const String collectionCacheTable = 'collection_cache_table';
 }
