@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
+import 'package:yayvo/core/services/sensors/proximity_theme_changer.dart';
 import 'package:yayvo/features/consumer/presentation/theme/consumer_theme.dart';
 import 'package:yayvo/features/consumer/presentation/shell/consumer_routes.dart';
 import 'package:yayvo/features/consumer/data/repositories/consumer_repository_impl.dart';
@@ -13,7 +14,6 @@ import 'package:yayvo/features/consumer/presentation/pages/consumer_collection_s
 import 'package:yayvo/core/services/sensors/sensor_service.dart';
 import 'package:yayvo/core/services/sensors/shake_detector.dart';
 import 'package:yayvo/core/services/storage/user_session_service.dart';
-import 'package:proximity_sensor/proximity_sensor.dart';
 
 final currentConsumerRouteProvider =
     StateProvider<ConsumerRoute>((ref) => ConsumerRoute.home);
@@ -46,18 +46,14 @@ class _ConsumerShellState extends ConsumerState<ConsumerShell> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _restoreConsumerAuth();
       _initShakeDetector();
-      _initProximityScreenOff();
+      _initProximityThemeChanger();
     });
   }
 
-  Future<void> _initProximityScreenOff() async {
-    try {
-      await ProximitySensor.setProximityScreenOff(true);
-    } catch (_) {
-      // Not supported on this platform or device (e.g. iOS, emulator)
-    }
+  void _initProximityThemeChanger() {
+    ref.read(proximityThemeChangerProvider).startListening();
   }
-
+  
   void _restoreConsumerAuth() {
     final current = ref.read(consumerAuthIdProvider);
     if (current != null && current.isNotEmpty) return;
@@ -83,6 +79,7 @@ class _ConsumerShellState extends ConsumerState<ConsumerShell> {
   @override
   void dispose() {
     _shakeDetector?.stopListening();
+    ref.read(proximityThemeChangerProvider).stopListening();
     super.dispose();
   }
 
