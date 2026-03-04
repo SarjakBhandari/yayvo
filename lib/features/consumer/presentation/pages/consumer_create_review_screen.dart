@@ -44,6 +44,17 @@ class _ConsumerCreateReviewScreenState
     super.dispose();
   }
 
+  void _resetForm() {
+    _titleController.clear();
+    _descriptionController.clear();
+    _productNameController.clear();
+    setState(() {
+      _sentiments = [];
+      _imageFile = null;
+      _error = null;
+    });
+  }
+
   Future<void> _pickImage() async {
     final source = await showModalBottomSheet<ImageSource>(
       context: context,
@@ -136,6 +147,10 @@ class _ConsumerCreateReviewScreenState
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(reloadTriggerProvider, (prev, next) {
+      if (prev != next && next > 0) _resetForm();
+    });
+
     return Center(
       child: SingleChildScrollView(
         child: ConstrainedBox(

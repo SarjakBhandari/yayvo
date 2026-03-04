@@ -5,6 +5,8 @@ import 'package:yayvo/core/api/api_client.dart';
 import 'package:yayvo/features/auth/presentation/pages/login_page.dart';
 import 'package:yayvo/features/consumer/presentation/shell/consumer_shell.dart';
 import 'package:yayvo/core/providers/theme_provider.dart';
+import 'package:yayvo/core/services/storage/user_session_service.dart';
+import 'package:yayvo/features/onboarding/presentation/pages/welcome_screen.dart';
 
 class MyApp extends ConsumerStatefulWidget {
   const MyApp({super.key});
@@ -32,6 +34,14 @@ class _MyAppState extends ConsumerState<MyApp> {
     }
 
     final themeMode = ref.watch(themeModeProvider);
+    final session = ref.watch(userSessionServiceProvider).getUserSession();
+    final isConsumerLoggedIn = session != null &&
+        session.role.toLowerCase().contains('consumer');
+    if (isConsumerLoggedIn && ref.read(consumerAuthIdProvider) == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref.read(consumerAuthIdProvider.notifier).state = session.userId;
+      });
+    }
 
     return MaterialApp(
       navigatorKey: _navigatorKey,
@@ -40,7 +50,7 @@ class _MyAppState extends ConsumerState<MyApp> {
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: themeMode,
-      home: const ConsumerShell(),
+      home: isConsumerLoggedIn ? const ConsumerShell() : const WelcomeScreen(),
     );
   }
 }

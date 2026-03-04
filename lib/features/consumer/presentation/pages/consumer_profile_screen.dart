@@ -8,17 +8,14 @@ import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:yayvo/core/utils/image_url_helper.dart';
 import 'package:yayvo/features/consumer/presentation/shell/consumer_shell.dart';
 import 'package:yayvo/features/consumer/domain/entities/consumer_entity.dart';
-import 'package:yayvo/features/consumer/domain/entities/review_entity.dart';
 import 'package:yayvo/features/consumer/presentation/theme/consumer_theme.dart';
-import 'package:yayvo/features/consumer/presentation/widgets/review_card.dart';
-import 'package:yayvo/features/consumer/presentation/widgets/review_detail_dialog.dart';
 import 'package:yayvo/features/consumer/data/repositories/consumer_repository_impl.dart';
-import 'package:yayvo/features/consumer/data/repositories/review_repository_impl.dart';
-import 'package:yayvo/core/services/connectivity/network_info.dart';
 import 'package:yayvo/core/utils/network_error_helper.dart';
 import 'package:yayvo/features/consumer/data/datasources/local/consumer_local_datasource.dart';
 import 'package:yayvo/features/auth/domain/usecases/logout_user_usecase.dart';
 import 'package:yayvo/features/auth/presentation/pages/login_page.dart';
+import 'package:yayvo/features/consumer/presentation/pages/consumer_my_reviews_screen.dart';
+import 'package:yayvo/core/providers/theme_provider.dart';
 
 class ConsumerProfileScreen extends ConsumerStatefulWidget {
   const ConsumerProfileScreen({super.key});
@@ -33,8 +30,6 @@ class _ConsumerProfileScreenState extends ConsumerState<ConsumerProfileScreen> {
   bool _uploadingPic = false;
   String? _error;
   ConsumerEntity? _consumer;
-  List<ReviewEntity> _myReviews = [];
-  bool _reviewsLoading = true;
   /// Bump after upload so CachedNetworkImage loads fresh (same URL, new file on server).
   int _profilePicCacheKey = 0;
 
@@ -62,7 +57,6 @@ class _ConsumerProfileScreenState extends ConsumerState<ConsumerProfileScreen> {
         _error = null;
         _profilePicCacheKey = DateTime.now().millisecondsSinceEpoch;
       });
-      _loadMyReviews(authId);
       return;
     }
     setState(() => _loading = true);
@@ -83,7 +77,6 @@ class _ConsumerProfileScreenState extends ConsumerState<ConsumerProfileScreen> {
             _consumer = consumer;
             _profilePicCacheKey = DateTime.now().millisecondsSinceEpoch;
           });
-          _loadMyReviews(authId);
         },
       );
     } catch (e) {
@@ -91,30 +84,6 @@ class _ConsumerProfileScreenState extends ConsumerState<ConsumerProfileScreen> {
       setState(() {
         _loading = false;
         _error = normalizeNetworkErrorMessage(e.toString());
-      });
-    }
-  }
-
-  Future<void> _loadMyReviews(String authId) async {
-    setState(() => _reviewsLoading = true);
-    try {
-      final repo = ref.read(reviewRepositoryProvider);
-      final result = await repo.getReviewsByAuthor(authId);
-      if (!mounted) return;
-      result.fold(
-        (f) => setState(() {
-          _myReviews = [];
-          _reviewsLoading = false;
-        }),
-        (list) => setState(() {
-          _myReviews = list;
-          _reviewsLoading = false;
-        }),
-      );
-    } catch (_) {
-      if (mounted) setState(() {
-        _myReviews = [];
-        _reviewsLoading = false;
       });
     }
   }
@@ -138,7 +107,6 @@ class _ConsumerProfileScreenState extends ConsumerState<ConsumerProfileScreen> {
           _profilePicCacheKey = DateTime.now().millisecondsSinceEpoch;
         }),
       );
-      _loadMyReviews(authId);
     } catch (_) {}
   }
 
@@ -260,7 +228,7 @@ class _ConsumerProfileScreenState extends ConsumerState<ConsumerProfileScreen> {
             ),
           if (_consumer != null) ...[
             const SizedBox(height: 32),
-            _buildMyReviewsSection(),
+            _buildShowMyReviewsButton(),
           ],
           const SizedBox(height: 24),
           SizedBox(
@@ -577,6 +545,30 @@ class _ConsumerProfileScreenState extends ConsumerState<ConsumerProfileScreen> {
                       fontStyle: FontStyle.italic,
                     ),
                   ),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.dark_mode_outlined, size: 20, color: ConsumerTheme.muted),
+                        const SizedBox(width: 10),
+                        Text(
+                          'Dark theme',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: ConsumerTheme.primaryText,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Switch.adaptive(
+                      value: ref.watch(themeModeProvider) == ThemeMode.dark,
+                      onChanged: (_) => ref.read(themeModeProvider.notifier).toggleTheme(),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
@@ -585,142 +577,28 @@ class _ConsumerProfileScreenState extends ConsumerState<ConsumerProfileScreen> {
     );
   }
 
-  Widget _buildMyReviewsSection() {
-    final displayName = _consumer!.displayName;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'YOUR CONTENT',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500,
-                    color: ConsumerTheme.muted,
-                    letterSpacing: 0.14,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  'My Reviews',
-                  style: TextStyle(
-                    fontSize: 26,
-                    fontWeight: FontWeight.w700,
-                    color: ConsumerTheme.primaryText,
-                    letterSpacing: -0.03,
-                  ),
-                ),
-              ],
+  Widget _buildShowMyReviewsButton() {
+    return SizedBox(
+      width: double.infinity,
+      child: FilledButton.icon(
+        onPressed: () {
+          Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (context) => const ConsumerMyReviewsScreen(),
             ),
-            if (!_reviewsLoading && _myReviews.isNotEmpty) ...[
-              const SizedBox(width: 12),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 5),
-                decoration: BoxDecoration(
-                  color: ConsumerTheme.surface,
-                  border: Border.all(color: ConsumerTheme.border),
-                  borderRadius: BorderRadius.circular(30),
-                ),
-                child: Text(
-                  '${_myReviews.length} review${_myReviews.length == 1 ? '' : 's'}',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                    color: ConsumerTheme.muted,
-                  ),
-                ),
-              ),
-            ],
-          ],
-        ),
-        const SizedBox(height: 24),
-        if (_reviewsLoading)
-          const Center(
-            child: Padding(
-              padding: EdgeInsets.all(24),
-              child: CircularProgressIndicator(),
-            ),
-          )
-        else if (_myReviews.isEmpty)
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: 60, horizontal: 20),
-            decoration: BoxDecoration(
-              color: ConsumerTheme.surface,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: ConsumerTheme.border),
-            ),
-            child: Column(
-              children: [
-                Icon(Icons.rate_review_outlined, size: 48, color: ConsumerTheme.muted),
-                const SizedBox(height: 12),
-                Text(
-                  'No reviews yet',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: ConsumerTheme.primaryText,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Reviews you create will appear here.',
-                  style: TextStyle(fontSize: 13, color: ConsumerTheme.muted),
-                ),
-              ],
-            ),
-          )
-        else
-          LayoutBuilder(
-            builder: (context, constraints) {
-              const minCardWidth = 220.0;
-              final crossCount = (constraints.maxWidth / minCardWidth).floor().clamp(1, 4);
-              return GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: crossCount,
-                  mainAxisSpacing: 16,
-                  crossAxisSpacing: 16,
-                  childAspectRatio: 0.72,
-                ),
-                itemCount: _myReviews.length,
-                itemBuilder: (context, index) {
-                  final review = _myReviews[index];
-                  final authId = ref.read(consumerAuthIdProvider);
-                  return ReviewCard(
-                    review: review,
-                    authorName: displayName,
-                    onTap: (r, name) async {
-                      final connected = await ref.read(networkInfoProvider).isConnected;
-                      if (!mounted) return;
-                      ReviewDetailDialog.show(
-                        context,
-                        r,
-                        authorName: name,
-                        isOwner: true,
-                        isOnline: connected,
-                        onDeleted: () => _loadMyReviews(authId ?? ''),
-                        onUpdated: (updated) {
-                          setState(() {
-                            final i = _myReviews.indexWhere((rev) => rev.id == r.id);
-                            if (i >= 0) {
-                              _myReviews = List.from(_myReviews)..[i] = updated;
-                            }
-                          });
-                        },
-                      );
-                    },
-                  );
-                },
-              );
-            },
+          );
+        },
+        icon: const Icon(Icons.rate_review_rounded, size: 22),
+        label: const Text('Show my reviews'),
+        style: FilledButton.styleFrom(
+          backgroundColor: ConsumerTheme.accent,
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
           ),
-      ],
+        ),
+      ),
     );
   }
 
