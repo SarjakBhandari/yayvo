@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -24,11 +23,7 @@ class UserSession {
     required this.role,
   });
 
-  UserSession copyWith({
-    String? userId,
-    String? email,
-    String? role,
-  }) {
+  UserSession copyWith({String? userId, String? email, String? role}) {
     return UserSession(
       userId: userId ?? this.userId,
       email: email ?? this.email,
@@ -37,11 +32,7 @@ class UserSession {
   }
 
   Map<String, dynamic> toMap() {
-    return {
-      'user_id': userId,
-      'user_email': email,
-      'user_role': role,
-    };
+    return {'user_id': userId, 'user_email': email, 'user_role': role};
   }
 
   factory UserSession.fromMap(Map<String, dynamic> map) {
