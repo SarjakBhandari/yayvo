@@ -21,6 +21,7 @@ class ReviewCard extends ConsumerWidget {
     this.onLikeChangedWithState,
     this.isLiked = false,
     this.isSaved = false,
+    this.isOnline = true,
   });
 
   final ReviewEntity review;
@@ -36,6 +37,8 @@ class ReviewCard extends ConsumerWidget {
   final void Function(bool isNowLiked)? onLikeChangedWithState;
   final bool isLiked;
   final bool isSaved;
+  /// When false, like button is disabled (e.g. offline).
+  final bool isOnline;
 
   String _imageUrl(ReviewEntity r) => imageUrlFromPath(r.imageUrl);
 
@@ -108,13 +111,13 @@ class ReviewCard extends ConsumerWidget {
         .map((s) => s[0].toUpperCase())
         .join();
     return Material(
-      color: ConsumerTheme.surface,
+      color: ConsumerTheme.surfaceOf(context),
       borderRadius: BorderRadius.circular(12),
       elevation: 0,
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: ConsumerTheme.border),
+          border: Border.all(color: ConsumerTheme.borderOf(context)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -149,10 +152,10 @@ class ReviewCard extends ConsumerWidget {
                       children: [
                         Text(
                           displayName,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontWeight: FontWeight.w500,
                             fontSize: 12,
-                            color: ConsumerTheme.primaryText,
+                            color: ConsumerTheme.primaryTextOf(context),
                           ),
                         ),
                         if (displayHandle.isNotEmpty)
@@ -160,7 +163,7 @@ class ReviewCard extends ConsumerWidget {
                             displayHandle,
                             style: TextStyle(
                               fontSize: 10,
-                              color: ConsumerTheme.muted,
+                              color: ConsumerTheme.mutedOf(context),
                             ),
                           ),
                       ],
@@ -171,7 +174,7 @@ class ReviewCard extends ConsumerWidget {
                       _dateStr,
                       style: TextStyle(
                         fontSize: 9,
-                        color: ConsumerTheme.muted,
+                        color: ConsumerTheme.mutedOf(context),
                         letterSpacing: 0.04,
                       ),
                     ),
@@ -191,7 +194,7 @@ class ReviewCard extends ConsumerWidget {
                   aspectRatio: 16 / 10,
                   child: imageUrl.isEmpty
                       ? Container(
-                          color: ConsumerTheme.primaryText,
+                          color: ConsumerTheme.primaryTextOf(context),
                           child: review.productName != null
                               ? Align(
                                   alignment: Alignment.topLeft,
@@ -203,7 +206,7 @@ class ReviewCard extends ConsumerWidget {
                                         vertical: 5,
                                       ),
                                       decoration: BoxDecoration(
-                                        color: ConsumerTheme.surface
+                                        color: ConsumerTheme.surfaceOf(context)
                                             .withOpacity(0.92),
                                         borderRadius: BorderRadius.circular(30),
                                       ),
@@ -211,7 +214,7 @@ class ReviewCard extends ConsumerWidget {
                                         review.productName!,
                                         style: TextStyle(
                                           fontSize: 11,
-                                          color: ConsumerTheme.bodyText,
+                                          color: ConsumerTheme.bodyTextOf(context),
                                         ),
                                       ),
                                     ),
@@ -223,10 +226,10 @@ class ReviewCard extends ConsumerWidget {
                           imageUrl: imageUrl,
                           fit: BoxFit.cover,
                           placeholder: (_, __) => Container(
-                            color: ConsumerTheme.primaryText,
+                            color: ConsumerTheme.primaryTextOf(context),
                           ),
                           errorWidget: (_, __, ___) => Container(
-                            color: ConsumerTheme.primaryText,
+                            color: ConsumerTheme.primaryTextOf(context),
                           ),
                         ),
                 ),
@@ -238,7 +241,7 @@ class ReviewCard extends ConsumerWidget {
               child: Row(
                 children: [
                   TextButton.icon(
-                    onPressed: currentUserId != null
+                    onPressed: currentUserId != null && isOnline
                         ? () async {
                             if (currentUserId == null) return;
                             final repo = ref.read(reviewRepositoryProvider);
@@ -264,7 +267,7 @@ class ReviewCard extends ConsumerWidget {
                     icon: Icon(
                       Icons.favorite_rounded,
                       size: 16,
-                      color: isLikedVal ? ConsumerTheme.error : ConsumerTheme.bodyText,
+                      color: isLikedVal ? ConsumerTheme.error : ConsumerTheme.bodyTextOf(context),
                       fill: isLikedVal ? 1.0 : 0,
                     ),
                     label: Text(
@@ -273,11 +276,11 @@ class ReviewCard extends ConsumerWidget {
                         fontSize: 12,
                         color: isLikedVal
                             ? ConsumerTheme.error
-                            : ConsumerTheme.bodyText,
+                            : ConsumerTheme.bodyTextOf(context),
                       ),
                     ),
                     style: TextButton.styleFrom(
-                      foregroundColor: ConsumerTheme.bodyText,
+                      foregroundColor: ConsumerTheme.bodyTextOf(context),
                     ),
                   ),
                   const Spacer(),
@@ -287,8 +290,8 @@ class ReviewCard extends ConsumerWidget {
                       Icons.bookmark_rounded,
                       size: 16,
                       color: isSaved
-                          ? ConsumerTheme.primaryText
-                          : ConsumerTheme.bodyText,
+                          ? ConsumerTheme.primaryTextOf(context)
+                          : ConsumerTheme.bodyTextOf(context),
                       fill: isSaved ? 1.0 : 0,
                     ),
                     label: Text(
@@ -296,8 +299,8 @@ class ReviewCard extends ConsumerWidget {
                       style: TextStyle(
                         fontSize: 12,
                         color: isSaved
-                            ? ConsumerTheme.primaryText
-                            : ConsumerTheme.bodyText,
+                            ? ConsumerTheme.primaryTextOf(context)
+                            : ConsumerTheme.bodyTextOf(context),
                       ),
                     ),
                   ),
@@ -314,10 +317,10 @@ class ReviewCard extends ConsumerWidget {
                   if (review.title.isNotEmpty)
                     Text(
                       review.title,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
-                        color: ConsumerTheme.primaryText,
+                        color: ConsumerTheme.primaryTextOf(context),
                         letterSpacing: -0.02,
                       ),
                       maxLines: 2,
@@ -329,7 +332,7 @@ class ReviewCard extends ConsumerWidget {
                       review.description,
                       style: TextStyle(
                         fontSize: 12,
-                        color: ConsumerTheme.bodyText,
+                        color: ConsumerTheme.bodyTextOf(context),
                         height: 1.4,
                       ),
                       maxLines: 2,
@@ -347,7 +350,7 @@ class ReviewCard extends ConsumerWidget {
                                   vertical: 2,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: ConsumerTheme.borderLight,
+                                  color: ConsumerTheme.borderLightOf(context),
                                   borderRadius: BorderRadius.circular(14),
                                 ),
                                 child: Text(
@@ -355,7 +358,7 @@ class ReviewCard extends ConsumerWidget {
                                   style: TextStyle(
                                     fontSize: 9,
                                     fontWeight: FontWeight.w500,
-                                    color: ConsumerTheme.bodyText,
+                                    color: ConsumerTheme.bodyTextOf(context),
                                   ),
                                 ),
                               ))

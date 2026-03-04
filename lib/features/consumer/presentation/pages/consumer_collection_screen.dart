@@ -10,6 +10,8 @@ import 'package:yayvo/features/consumer/presentation/widgets/review_card.dart';
 import 'package:yayvo/features/consumer/presentation/widgets/review_detail_dialog.dart';
 import 'package:yayvo/features/consumer/presentation/widgets/product_detail_dialog.dart';
 import 'package:yayvo/core/utils/network_error_helper.dart';
+import 'package:yayvo/core/services/connectivity/network_info.dart';
+import 'package:yayvo/features/consumer/presentation/providers/consumer_providers.dart';
 
 class ConsumerCollectionScreen extends ConsumerStatefulWidget {
   const ConsumerCollectionScreen({super.key});
@@ -77,6 +79,11 @@ class _ConsumerCollectionScreenState
   @override
   Widget build(BuildContext context) {
     final authId = ref.watch(consumerAuthIdProvider);
+    final currentUser = authId != null && authId.isNotEmpty
+        ? ref.watch(consumerByAuthIdProvider(authId)).value
+        : null;
+    final isOnlineAsync = ref.watch(isOnlineProvider);
+    final isOnline = isOnlineAsync.value ?? false;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -194,6 +201,8 @@ class _ConsumerCollectionScreenState
                                   itemCount: _savedReviews.length,
                                   itemBuilder: (context, i) {
                                     final review = _savedReviews[i];
+                                    final isOwnReview = authId != null && review.authorId == authId;
+                                    final authorDisplayName = isOwnReview ? currentUser?.displayName : null;
                                     return Padding(
                                       padding: const EdgeInsets.only(bottom: 16),
                                       child: Container(
@@ -210,13 +219,19 @@ class _ConsumerCollectionScreenState
                                         child: ReviewCard(
                                           review: review,
                                           currentUserId: authId,
+                                          authorName: authorDisplayName,
                                           isSaved: true,
-                                          onTap: (r, authorName) =>
-                                              ReviewDetailDialog.show(
-                                            context,
-                                            r,
-                                            authorName: authorName,
-                                          ),
+                                          isOnline: isOnline,
+                                          onTap: (r, authorName) async {
+                                            final connected = await ref.read(networkInfoProvider).isConnected;
+                                            if (!mounted) return;
+                                            ReviewDetailDialog.show(
+                                              context,
+                                              r,
+                                              authorName: authorName,
+                                              isOnline: connected,
+                                            );
+                                          },
                                           onLikeChanged: () {},
                                           onLikeChangedWithState: (isNowLiked) {
                                             if (!mounted || authId == null) return;
