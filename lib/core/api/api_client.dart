@@ -31,7 +31,7 @@ class ApiClient {
     // Add interceptors
     _dio.interceptors.add(_AuthInterceptor());
 
-    // Auto retry on network failures
+    // Auto retry on network failures (skip retry for FormData - it cannot be reused)
     _dio.interceptors.add(
       RetryInterceptor(
         dio: _dio,
@@ -42,7 +42,7 @@ class ApiClient {
           Duration(seconds: 3),
         ],
         retryEvaluator: (error, attempt) {
-          // Retry on connection errors and timeouts, not on 4xx/5xx
+          if (error.requestOptions.data is FormData) return false;
           return error.type == DioExceptionType.connectionTimeout ||
               error.type == DioExceptionType.sendTimeout ||
               error.type == DioExceptionType.receiveTimeout ||
@@ -67,6 +67,11 @@ class ApiClient {
   }
 
   Dio get dio => _dio;
+
+  /// Registers a callback to run on 401 (e.g. clear auth state and navigate to login).
+  void setOnUnauthorized(void Function()? callback) {
+    _AuthInterceptor.onUnauthorized = callback;
+  }
 
   // GET request
   Future<Response> get(
@@ -122,17 +127,39 @@ class ApiClient {
     );
   }
 
-  // Multipart request for file uploads
+  // Multipart request for file uploads (FormData must not be reused; use fresh per request).
   Future<Response> uploadFile(
       String path, {
         required FormData formData,
         Options? options,
         ProgressCallback? onSendProgress,
       }) async {
+    final opts = options ?? Options();
+    final sendTimeout = opts.sendTimeout ?? const Duration(seconds: 60);
     return _dio.post(
       path,
       data: formData,
-      options: options,
+      options: opts.copyWith(sendTimeout: sendTimeout),
+      onSendProgress: onSendProgress,
+    );
+  }
+
+  /// PUT with FormData (e.g. profile picture upload to match frontend).
+  Future<Response> uploadFilePut(
+      String path, {
+        required FormData formData,
+        Options? options,
+        ProgressCallback? onSendProgress,
+      }) async {
+    final opts = options ?? Options();
+    final sendTimeout = opts.sendTimeout ?? const Duration(seconds: 60);
+    final h = Map<String, dynamic>.from(opts.headers ?? {});
+    h.remove('Content-Type');
+    h.remove('content-type');
+    return _dio.put(
+      path,
+      data: formData,
+      options: opts.copyWith(sendTimeout: sendTimeout, contentType: null, headers: h),
       onSendProgress: onSendProgress,
     );
   }
@@ -143,11 +170,21 @@ class _AuthInterceptor extends Interceptor {
   final _storage = const FlutterSecureStorage();
   static const String _tokenKey = 'auth_token';
 
+  /// Called when a 401 is received; set by the app to navigate to login and clear auth state.
+  static void Function()? onUnauthorized;
+
   @override
   void onRequest(
       RequestOptions options,
       RequestInterceptorHandler handler,
       ) async {
+    if (options.data is FormData) {
+      final headers = Map<String, dynamic>.from(options.headers);
+      headers.remove('Content-Type');
+      headers.remove('content-type');
+      headers.remove('contentType');
+      options.headers = headers;
+    }
     // Public endpoints (no auth required)
     final publicEndpoints = [
       ApiEndpoints.login,
@@ -173,7 +210,7 @@ class _AuthInterceptor extends Interceptor {
     // Handle 401 Unauthorized - token expired
     if (err.response?.statusCode == 401) {
       _storage.delete(key: _tokenKey);
-      // TODO: Add navigation or callback to redirect user to login
+      _AuthInterceptor.onUnauthorized?.call();
     }
     handler.next(err);
   }
