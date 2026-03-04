@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hive/hive.dart';
 import 'package:yayvo/core/constants/hive_table_constants.dart';
 import 'package:yayvo/core/services/hive/hive_service.dart';
@@ -45,7 +46,7 @@ class AuthLocalDatasource implements IAuthLocalDataSource {
   @override
   Future<AuthHiveModel?> login(String email, String passwordHash) async {
     try {
-      final user = await _hiveService.login(email, passwordHash);
+      final user = _hiveService.login(email, passwordHash);
       if (user != null) {
         await _userSessionService.saveUserSession(
           UserSession(
@@ -138,7 +139,9 @@ class AuthLocalDatasource implements IAuthLocalDataSource {
     try {
       final box = Hive.box<AuthHiveModel>(HiveTableConstants.authTable);
       await box.clear();
-      await _userSessionService.clearSession(); // <-- clears SharedPreferences
+      await _userSessionService.clearSession();
+      const secureStorage = FlutterSecureStorage();
+      await secureStorage.delete(key: 'auth_token');
       return true;
     } catch (_) {
       return false;

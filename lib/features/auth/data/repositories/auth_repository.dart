@@ -281,7 +281,7 @@ class AuthRepository implements IAuthRepository {
       }
     } else {
       try {
-        final consumers = await _authDataSource.getAllConsumers();
+        final consumers = _authDataSource.getAllConsumers();
         return Right(consumers.map((c) => c.toEntity()).toList());
       } catch (e) {
         return Left(LocalDatabaseFailure(message: e.toString()));

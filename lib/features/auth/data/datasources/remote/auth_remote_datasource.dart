@@ -1,7 +1,7 @@
-// auth_remote_datasource.dart
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:yayvo/core/api/api_client.dart';
 import 'package:yayvo/core/api/api_endpoints.dart';
 import 'package:yayvo/core/services/storage/user_session_service.dart';
@@ -62,32 +62,45 @@ class AuthRemoteDatasource implements IAuthRemoteDataSource {
       },
     );
 
-    if (response.data['success'] == true) {
-      final data = response.data['user'] as Map<String, dynamic>;
-      final token = response.data['token'] as String;
+    final data = response.data;
+    if (data is! Map) return null;
+    final map = Map<String, dynamic>.from(data);
 
+    final success = map['success'] == true;
+    if (!success) return null;
 
-      // Build AuthApiModel with user + token
-      final user = AuthApiModel.fromJson({
-        'user': data,
-        'token': token,
-      });
-
-      // Save user session and token together
-      await _userSessionService.saveUserSession(
-        UserSession(
-          userId: user.id ?? '',
-          email: user.email,
-          role: user.role.toString(),
-        ),
-      );
-
-      await _userSessionService.saveAuthToken(token);
-
-      return user;
+    // Token: top-level or inside data
+    String? token = map['token'] is String ? map['token'] as String : null;
+    if (token == null && map['data'] is Map) {
+      final inner = Map<String, dynamic>.from(map['data'] as Map);
+      token = inner['token'] is String ? inner['token'] as String : null;
     }
+    if (token == null || token.isEmpty) return null;
 
-    return null;
+    // User payload: user or data
+    Map<String, dynamic> userMap = {};
+    if (map['user'] is Map) {
+      userMap = Map<String, dynamic>.from(map['user'] as Map);
+    } else if (map['data'] is Map) {
+      userMap = Map<String, dynamic>.from(map['data'] as Map);
+      userMap.remove('token');
+    }
+    if (userMap.isEmpty) return null;
+
+    final user = AuthApiModel.fromJson({...userMap, 'token': token});
+
+    await _userSessionService.saveUserSession(
+      UserSession(
+        userId: user.id ?? '',
+        email: user.email,
+        role: user.role.toString(),
+      ),
+    );
+    await _userSessionService.saveAuthToken(token);
+    const secureStorage = FlutterSecureStorage();
+    await secureStorage.write(key: 'auth_token', value: token);
+
+    return user;
   }
   @override
   Future<AuthApiModel> register(AuthApiModel user) async {
