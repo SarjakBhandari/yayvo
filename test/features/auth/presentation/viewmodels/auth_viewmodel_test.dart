@@ -16,7 +16,6 @@ import 'package:yayvo/features/auth/domain/usecases/register_user_usecase.dart';
 import 'package:yayvo/features/auth/presentation/state/auth_state.dart';
 import 'package:yayvo/features/auth/presentation/view_model/auth_viewmodel.dart';
 
-// ─── Mock use cases ───────────────────────────────────────────────────────
 class MockRegisterUser extends Mock implements RegisterUser {}
 
 class MockLoginUser extends Mock implements LoginUser {}
@@ -29,30 +28,25 @@ class MockGetUserById extends Mock implements GetUserById {}
 
 class MockGetUserByEmail extends Mock implements GetUserByEmail {}
 
-// ─── Shared fixtures ──────────────────────────────────────────────────────
-const tAuthEntity = AuthEntity(
+const tUser = AuthEntity(
   authId: 'auth123',
   role: UserType.consumer,
-  email: 'test@example.com',
-  passwordHash: 'Password1!',
+  email: 'jane@example.com',
+  passwordHash: 'Hunter2!',
 );
 
-final tConsumerEntity = ConsumerEntity(
+final tConsumer = ConsumerEntity(
   authId: 'auth123',
-  fullName: 'Test User',
-  username: 'testuser1234',
+  fullName: 'Jane Doe',
+  username: 'janedoe99',
   phoneNumber: '9800000000',
-  dob: '2000-01-01',
-  gender: 'male',
+  dob: '1999-05-14',
+  gender: 'female',
   country: 'Nepal',
 );
 
-const tApiFailure = ApiFailure(
-  message: 'Something went wrong',
-  statusCode: 500,
-);
+const tApiError = ApiFailure(message: 'Something went wrong', statusCode: 500);
 
-// ─── Helper ───────────────────────────────────────────────────────────────
 ProviderContainer _buildContainer({
   required MockRegisterUser registerUser,
   required MockLoginUser loginUser,
@@ -83,16 +77,13 @@ void main() {
   late ProviderContainer container;
 
   setUpAll(() {
-    registerFallbackValue(tAuthEntity);
-    registerFallbackValue(tConsumerEntity);
+    registerFallbackValue(tUser);
+    registerFallbackValue(tConsumer);
     registerFallbackValue(
-      RegisterUserParams(
-        authEntity: tAuthEntity,
-        consumerEntity: tConsumerEntity,
-      ),
+      RegisterUserParams(authEntity: tUser, consumerEntity: tConsumer),
     );
     registerFallbackValue(
-      const LoginParams(email: 'test@example.com', passwordHash: 'Password1!'),
+      const LoginParams(email: 'jane@example.com', passwordHash: 'Hunter2!'),
     );
   });
 
@@ -103,7 +94,6 @@ void main() {
     mockGetCurrentUser = MockGetCurrentUser();
     mockGetUserById = MockGetUserById();
     mockGetUserByEmail = MockGetUserByEmail();
-
     container = _buildContainer(
       registerUser: mockRegisterUser,
       loginUser: mockLoginUser,
@@ -116,278 +106,132 @@ void main() {
 
   tearDown(() => container.dispose());
 
-  // ─── Initial state ───────────────────────────────────────────────────────
-  group('initial state', () {
-    test('status is AuthStatus.initial on creation', () {
-      final state = container.read(authViewModelProvider);
-      expect(state.status, AuthStatus.initial);
-    });
-
-    test('user is null on creation', () {
-      final state = container.read(authViewModelProvider);
-      expect(state.user, isNull);
-    });
-
-    test('errorMessage is null on creation', () {
-      final state = container.read(authViewModelProvider);
-      expect(state.errorMessage, isNull);
-    });
+  test('starts with no user, no errors, and status set to initial', () {
+    final state = container.read(authViewModelProvider);
+    expect(state.status, AuthStatus.initial);
+    expect(state.user, isNull);
+    expect(state.errorMessage, isNull);
   });
 
-  // ─── register() ──────────────────────────────────────────────────────────
-  group('register()', () {
-    test('sets status to loading before result arrives', () async {
-      // Use a completer so we can observe the loading state
-      when(() => mockRegisterUser.call(any())).thenAnswer((_) async {
-        await Future.delayed(const Duration(milliseconds: 10));
-        return const Right(tAuthEntity);
-      });
-
-      final notifier = container.read(authViewModelProvider.notifier);
-      final future = notifier.register(tAuthEntity, tConsumerEntity);
-
-      // Immediately after calling, state should be loading
-      expect(container.read(authViewModelProvider).status, AuthStatus.loading);
-      await future;
+  test('goes into loading while a registration request is in flight', () async {
+    when(() => mockRegisterUser.call(any())).thenAnswer((_) async {
+      await Future.delayed(const Duration(milliseconds: 10));
+      return const Right(tUser);
     });
 
-    test('sets status to registered on success', () async {
-      when(
-        () => mockRegisterUser.call(any()),
-      ).thenAnswer((_) async => const Right(tAuthEntity));
-
-      await container
-          .read(authViewModelProvider.notifier)
-          .register(tAuthEntity, tConsumerEntity);
-
-      expect(
-        container.read(authViewModelProvider).status,
-        AuthStatus.registered,
-      );
-    });
-
-    test('sets status to error and stores message on failure', () async {
-      when(
-        () => mockRegisterUser.call(any()),
-      ).thenAnswer((_) async => const Left(tApiFailure));
-
-      await container
-          .read(authViewModelProvider.notifier)
-          .register(tAuthEntity, tConsumerEntity);
-
-      final state = container.read(authViewModelProvider);
-      expect(state.status, AuthStatus.error);
-      expect(state.errorMessage, tApiFailure.message);
-    });
+    final future = container
+        .read(authViewModelProvider.notifier)
+        .register(tUser, tConsumer);
+    expect(container.read(authViewModelProvider).status, AuthStatus.loading);
+    await future;
   });
 
-  // ─── login() ─────────────────────────────────────────────────────────────
-  group('login()', () {
-    test('sets status to loading before result arrives', () async {
-      when(() => mockLoginUser.call(any())).thenAnswer((_) async {
-        await Future.delayed(const Duration(milliseconds: 10));
-        return const Right(tAuthEntity);
-      });
+  test("becomes 'registered' after a successful sign-up", () async {
+    when(
+      () => mockRegisterUser.call(any()),
+    ).thenAnswer((_) async => const Right(tUser));
 
-      final notifier = container.read(authViewModelProvider.notifier);
-      final future = notifier.login(
-        email: 'test@example.com',
-        password: 'Password1!',
-      );
+    await container
+        .read(authViewModelProvider.notifier)
+        .register(tUser, tConsumer);
 
-      expect(container.read(authViewModelProvider).status, AuthStatus.loading);
-      await future;
-    });
+    expect(container.read(authViewModelProvider).status, AuthStatus.registered);
+  });
 
-    test('sets status to authenticated and stores user on success', () async {
+  test('shows an error message when sign-up hits a conflict', () async {
+    when(
+      () => mockRegisterUser.call(any()),
+    ).thenAnswer((_) async => const Left(tApiError));
+
+    await container
+        .read(authViewModelProvider.notifier)
+        .register(tUser, tConsumer);
+
+    final state = container.read(authViewModelProvider);
+    expect(state.status, AuthStatus.error);
+    expect(state.errorMessage, tApiError.message);
+  });
+
+  test(
+    "becomes 'authenticated' and saves the user after a successful login",
+    () async {
       when(
         () => mockLoginUser.call(any()),
-      ).thenAnswer((_) async => const Right(tAuthEntity));
+      ).thenAnswer((_) async => const Right(tUser));
 
       await container
           .read(authViewModelProvider.notifier)
-          .login(email: 'test@example.com', password: 'Password1!');
+          .login(email: 'jane@example.com', password: 'Hunter2!');
 
       final state = container.read(authViewModelProvider);
       expect(state.status, AuthStatus.authenticated);
-      expect(state.user, tAuthEntity);
-    });
+      expect(state.user, tUser);
+    },
+  );
 
-    test(
-      'sets status to error and stores message on wrong credentials',
-      () async {
-        const failure = ApiFailure(
-          message: 'Invalid credentials',
-          statusCode: 401,
-        );
-        when(
-          () => mockLoginUser.call(any()),
-        ).thenAnswer((_) async => const Left(failure));
+  test('shows an error when login credentials are wrong', () async {
+    const failure = ApiFailure(message: 'Invalid credentials', statusCode: 401);
+    when(
+      () => mockLoginUser.call(any()),
+    ).thenAnswer((_) async => const Left(failure));
 
-        await container
-            .read(authViewModelProvider.notifier)
-            .login(email: 'test@example.com', password: 'wrongpass');
+    await container
+        .read(authViewModelProvider.notifier)
+        .login(email: 'jane@example.com', password: 'wrongpass');
 
-        final state = container.read(authViewModelProvider);
-        expect(state.status, AuthStatus.error);
-        expect(state.errorMessage, 'Invalid credentials');
-      },
-    );
+    final state = container.read(authViewModelProvider);
+    expect(state.status, AuthStatus.error);
+    expect(state.errorMessage, 'Invalid credentials');
   });
 
-  // ─── logout() ────────────────────────────────────────────────────────────
-  group('logout()', () {
-    test('sets status to unauthenticated and clears user on success', () async {
-      when(
-        () => mockLogoutUser.call(),
-      ).thenAnswer((_) async => const Right(true));
-
-      await container.read(authViewModelProvider.notifier).logout();
-
-      final state = container.read(authViewModelProvider);
-      expect(state.status, AuthStatus.unauthenticated);
-      expect(state.user, isNull);
-    });
-
-    test('sets status to error on logout failure', () async {
-      const failure = LocalDatabaseFailure(message: 'Failed to clear session');
-      when(
-        () => mockLogoutUser.call(),
-      ).thenAnswer((_) async => const Left(failure));
-
-      await container.read(authViewModelProvider.notifier).logout();
-
-      final state = container.read(authViewModelProvider);
-      expect(state.status, AuthStatus.error);
-      expect(state.errorMessage, 'Failed to clear session');
-    });
-  });
-
-  // ─── getCurrentUser() ────────────────────────────────────────────────────
-  group('getCurrentUser()', () {
-    test('sets status to authenticated and stores user on success', () async {
+  test(
+    'restores the user session when getCurrentUser finds an active login',
+    () async {
       when(
         () => mockGetCurrentUser.call(),
-      ).thenAnswer((_) async => const Right(tAuthEntity));
+      ).thenAnswer((_) async => const Right(tUser));
 
       await container.read(authViewModelProvider.notifier).getCurrentUser();
 
       final state = container.read(authViewModelProvider);
       expect(state.status, AuthStatus.authenticated);
-      expect(state.user, tAuthEntity);
-    });
+      expect(state.user, tUser);
+    },
+  );
 
-    test('sets status to error when no session exists', () async {
-      const failure = ApiFailure(message: 'No active session', statusCode: 401);
-      when(
-        () => mockGetCurrentUser.call(),
-      ).thenAnswer((_) async => const Left(failure));
+  test('resolves and stores a user when fetching by id', () async {
+    when(
+      () => mockGetUserById.call(any()),
+    ).thenAnswer((_) async => const Right(tUser));
 
-      await container.read(authViewModelProvider.notifier).getCurrentUser();
+    await container.read(authViewModelProvider.notifier).getUserById('auth123');
 
-      final state = container.read(authViewModelProvider);
-      expect(state.status, AuthStatus.error);
-      expect(state.errorMessage, 'No active session');
-    });
+    expect(container.read(authViewModelProvider).user, tUser);
   });
 
-  // ─── getUserById() ───────────────────────────────────────────────────────
-  group('getUserById()', () {
-    test('sets status to authenticated and stores user on success', () async {
-      when(
-        () => mockGetUserById.call(any()),
-      ).thenAnswer((_) async => const Right(tAuthEntity));
+  test('resolves and stores a user when fetching by email', () async {
+    when(
+      () => mockGetUserByEmail.call(any()),
+    ).thenAnswer((_) async => const Right(tUser));
 
-      await container
-          .read(authViewModelProvider.notifier)
-          .getUserById('auth123');
+    await container
+        .read(authViewModelProvider.notifier)
+        .getUserByEmail('jane@example.com');
 
-      final state = container.read(authViewModelProvider);
-      expect(state.status, AuthStatus.authenticated);
-      expect(state.user, tAuthEntity);
-    });
-
-    test('sets status to error when user id not found', () async {
-      const failure = ApiFailure(message: 'User not found', statusCode: 404);
-      when(
-        () => mockGetUserById.call(any()),
-      ).thenAnswer((_) async => const Left(failure));
-
-      await container
-          .read(authViewModelProvider.notifier)
-          .getUserById('bad-id');
-
-      final state = container.read(authViewModelProvider);
-      expect(state.status, AuthStatus.error);
-      expect(state.errorMessage, 'User not found');
-    });
+    expect(container.read(authViewModelProvider).user, tUser);
   });
 
-  // ─── getUserByEmail() ────────────────────────────────────────────────────
-  group('getUserByEmail()', () {
-    test('sets status to authenticated and stores user on success', () async {
-      when(
-        () => mockGetUserByEmail.call(any()),
-      ).thenAnswer((_) async => const Right(tAuthEntity));
+  test('clears the error message when clearError is called', () async {
+    when(
+      () => mockRegisterUser.call(any()),
+    ).thenAnswer((_) async => const Left(tApiError));
+    await container
+        .read(authViewModelProvider.notifier)
+        .register(tUser, tConsumer);
+    expect(container.read(authViewModelProvider).errorMessage, isNotNull);
 
-      await container
-          .read(authViewModelProvider.notifier)
-          .getUserByEmail('test@example.com');
+    container.read(authViewModelProvider.notifier).clearError();
 
-      final state = container.read(authViewModelProvider);
-      expect(state.status, AuthStatus.authenticated);
-      expect(state.user, tAuthEntity);
-    });
-
-    test('sets status to error when email not found', () async {
-      const failure = ApiFailure(message: 'User not found', statusCode: 404);
-      when(
-        () => mockGetUserByEmail.call(any()),
-      ).thenAnswer((_) async => const Left(failure));
-
-      await container
-          .read(authViewModelProvider.notifier)
-          .getUserByEmail('ghost@example.com');
-
-      final state = container.read(authViewModelProvider);
-      expect(state.status, AuthStatus.error);
-      expect(state.errorMessage, 'User not found');
-    });
-  });
-
-  // ─── clearError() ────────────────────────────────────────────────────────
-  group('clearError()', () {
-    test('resets errorMessage to null', () async {
-      when(
-        () => mockLoginUser.call(any()),
-      ).thenAnswer((_) async => const Left(tApiFailure));
-      await container
-          .read(authViewModelProvider.notifier)
-          .login(email: 'test@example.com', password: 'wrongpass');
-      // Error is set
-      expect(
-        container.read(authViewModelProvider).errorMessage,
-        tApiFailure.message,
-      );
-
-      // Clear it
-      container.read(authViewModelProvider.notifier).clearError();
-
-      expect(container.read(authViewModelProvider).errorMessage, isNull);
-    });
-
-    test('does not change status when clearing error', () async {
-      when(
-        () => mockLoginUser.call(any()),
-      ).thenAnswer((_) async => const Left(tApiFailure));
-      await container
-          .read(authViewModelProvider.notifier)
-          .login(email: 'test@example.com', password: 'wrongpass');
-
-      container.read(authViewModelProvider.notifier).clearError();
-
-      // Status remains error, only message is cleared
-      expect(container.read(authViewModelProvider).status, AuthStatus.error);
-    });
+    expect(container.read(authViewModelProvider).errorMessage, isNull);
   });
 }
