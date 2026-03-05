@@ -9,8 +9,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 void main() {
   group("RetailerRegistrationScreen Unit Tests (validators)", () {
     test("email validator returns error for empty email", () {
+      // Simple email validation - checks if empty
       String? validator(String? value) {
         if (value == null || value.isEmpty) return "Email is required";
+        // Basic regex for email format checking
         if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
           return "Enter a valid email";
         }
@@ -21,9 +23,12 @@ void main() {
     });
 
     test("password validator returns error for short password", () {
-      String? validator(String? value) {
-        if (value == null || value.isEmpty) return "Password is required";
-        if (value.length < 6) return "Password must be at least 6 characters";
+      String? validator(String? val) {
+        // Changed param name slightly
+        if (val == null || val.isEmpty) return "Password is required";
+        if (val.length < 6) {
+          return "Password must be at least 6 characters";
+        }
         return null;
       }
 
@@ -32,10 +37,16 @@ void main() {
 
     test("confirm password validator returns mismatch error", () {
       final password = "mypassword";
+
+      // Checking if passwords match
       String? validator(String? value) {
         if (value == null || value.isEmpty)
           return "Please confirm your password";
-        if (value != password) return "Passwords do not match";
+
+        // Not matching? Return error
+        if (value != password) {
+          return "Passwords do not match";
+        }
         return null;
       }
 
@@ -49,8 +60,11 @@ void main() {
     late UserSessionService userSessionService;
 
     setUp(() async {
+      // Setting up mock values for SharedPreferences
       SharedPreferences.setMockInitialValues({});
       prefs = await SharedPreferences.getInstance();
+
+      // Initialize services
       hiveService = HiveService();
       userSessionService = UserSessionService(prefs: prefs);
     });
@@ -58,6 +72,7 @@ void main() {
     testWidgets("renders all required text fields", (
       WidgetTester tester,
     ) async {
+      // Building the widget with necessary providers
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
@@ -69,7 +84,7 @@ void main() {
         ),
       );
 
-      // Owner name, org name, email, DOE, password, confirm password
+      // Note: We expect 6 fields total - owner name, org name, email, DOE, password, confirm password
       expect(find.byType(TextFormField), findsNWidgets(6));
     });
 
@@ -85,6 +100,7 @@ void main() {
         ),
       );
 
+      // Should find exactly one Register button on screen
       expect(find.text("Register"), findsOneWidget);
     });
   });
