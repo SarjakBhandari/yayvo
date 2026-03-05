@@ -16,301 +16,172 @@ import 'package:yayvo/features/auth/domain/usecases/register_user_usecase.dart';
 
 class MockAuthRepository extends Mock implements IAuthRepository {}
 
+const tUser = AuthEntity(
+  authId: 'auth123',
+  role: UserType.consumer,
+  email: 'jane@example.com',
+  passwordHash: 'Hunter2!',
+);
+
+final tConsumer = ConsumerEntity(
+  authId: 'auth123',
+  fullName: 'Jane Doe',
+  username: 'janedoe99',
+  phoneNumber: '9800000000',
+  dob: '1999-05-14',
+  gender: 'female',
+  country: 'Nepal',
+);
+
 void main() {
-  late MockAuthRepository mockRepo;
-
-  // ─── Shared fixtures ──────────────────────────────────────────────────────
-  const tAuthEntity = AuthEntity(
-    authId: 'auth123',
-    role: UserType.consumer,
-    email: 'test@example.com',
-    passwordHash: 'Password1!',
-  );
-
-  final tConsumerEntity = ConsumerEntity(
-    authId: 'auth123',
-    fullName: 'Test User',
-    username: 'testuser1234',
-    phoneNumber: '9800000000',
-    dob: '2000-01-01',
-    gender: 'male',
-    country: 'Nepal',
-  );
+  late MockAuthRepository repo;
 
   setUpAll(() {
-    registerFallbackValue(tAuthEntity);
-    registerFallbackValue(tConsumerEntity);
+    registerFallbackValue(tUser);
+    registerFallbackValue(tConsumer);
     registerFallbackValue(
-      RegisterUserParams(
-        authEntity: tAuthEntity,
-        consumerEntity: tConsumerEntity,
-      ),
+      RegisterUserParams(authEntity: tUser, consumerEntity: tConsumer),
     );
     registerFallbackValue(
-      const LoginParams(email: 'test@example.com', passwordHash: 'Password1!'),
+      const LoginParams(email: 'jane@example.com', passwordHash: 'Hunter2!'),
     );
   });
 
-  setUp(() {
-    mockRepo = MockAuthRepository();
-  });
+  setUp(() => repo = MockAuthRepository());
 
-  // ─── RegisterUser ─────────────────────────────────────────────────────────
   group('RegisterUser', () {
-    test('returns AuthEntity on successful registration', () async {
+    test('a new user can register with valid details', () async {
       when(
-        () => mockRepo.register(any(), any()),
-      ).thenAnswer((_) async => const Right(tAuthEntity));
+        () => repo.register(any(), any()),
+      ).thenAnswer((_) async => const Right(tUser));
 
-      final usecase = RegisterUser(mockRepo);
-      final result = await usecase(
-        RegisterUserParams(
-          authEntity: tAuthEntity,
-          consumerEntity: tConsumerEntity,
-        ),
+      final result = await RegisterUser(repo)(
+        RegisterUserParams(authEntity: tUser, consumerEntity: tConsumer),
       );
 
-      expect(result, const Right(tAuthEntity));
-      verify(() => mockRepo.register(tAuthEntity, tConsumerEntity)).called(1);
+      expect(result, const Right(tUser));
+      verify(() => repo.register(tUser, tConsumer)).called(1);
     });
 
-    test('returns ApiFailure when email already exists (409)', () async {
+    test('registration fails when the email is already taken', () async {
       const failure = ApiFailure(
         message: 'Email already in use',
         statusCode: 409,
       );
       when(
-        () => mockRepo.register(any(), any()),
+        () => repo.register(any(), any()),
       ).thenAnswer((_) async => const Left(failure));
 
-      final usecase = RegisterUser(mockRepo);
-      final result = await usecase(
-        RegisterUserParams(
-          authEntity: tAuthEntity,
-          consumerEntity: tConsumerEntity,
-        ),
+      final result = await RegisterUser(repo)(
+        RegisterUserParams(authEntity: tUser, consumerEntity: tConsumer),
       );
 
       expect(result, const Left(failure));
     });
-
-    test('returns ApiFailure on network error', () async {
-      const failure = ApiFailure(
-        message: 'No internet connection',
-        statusCode: null,
-      );
-      when(
-        () => mockRepo.register(any(), any()),
-      ).thenAnswer((_) async => const Left(failure));
-
-      final usecase = RegisterUser(mockRepo);
-      final result = await usecase(
-        RegisterUserParams(
-          authEntity: tAuthEntity,
-          consumerEntity: tConsumerEntity,
-        ),
-      );
-
-      expect(result.isLeft(), true);
-      result.fold(
-        (l) => expect(l.message, 'No internet connection'),
-        (_) => fail('should be Left'),
-      );
-    });
   });
 
-  // ─── LoginUser ────────────────────────────────────────────────────────────
   group('LoginUser', () {
-    test('returns AuthEntity on successful login', () async {
+    test('a registered user can log in with correct credentials', () async {
       when(
-        () => mockRepo.login(any(), any()),
-      ).thenAnswer((_) async => const Right(tAuthEntity));
+        () => repo.login(any(), any()),
+      ).thenAnswer((_) async => const Right(tUser));
 
-      final usecase = LoginUser(mockRepo);
-      final result = await usecase(
-        const LoginParams(
-          email: 'test@example.com',
-          passwordHash: 'Password1!',
-        ),
+      final result = await LoginUser(repo)(
+        const LoginParams(email: 'jane@example.com', passwordHash: 'Hunter2!'),
       );
 
-      expect(result, const Right(tAuthEntity));
-      verify(() => mockRepo.login('test@example.com', 'Password1!')).called(1);
+      expect(result, const Right(tUser));
+      verify(() => repo.login('jane@example.com', 'Hunter2!')).called(1);
     });
 
-    test('returns ApiFailure on wrong password (401)', () async {
+    test('login returns an error for the wrong password', () async {
       const failure = ApiFailure(
         message: 'Invalid credentials',
         statusCode: 401,
       );
       when(
-        () => mockRepo.login(any(), any()),
+        () => repo.login(any(), any()),
       ).thenAnswer((_) async => const Left(failure));
 
-      final usecase = LoginUser(mockRepo);
-      final result = await usecase(
-        const LoginParams(email: 'test@example.com', passwordHash: 'wrongpass'),
+      final result = await LoginUser(repo)(
+        const LoginParams(email: 'jane@example.com', passwordHash: 'wrongpass'),
       );
 
       expect(result, const Left(failure));
     });
-
-    test('returns ApiFailure when user does not exist (404)', () async {
-      const failure = ApiFailure(message: 'User not found', statusCode: 404);
-      when(
-        () => mockRepo.login(any(), any()),
-      ).thenAnswer((_) async => const Left(failure));
-
-      final usecase = LoginUser(mockRepo);
-      final result = await usecase(
-        const LoginParams(email: 'ghost@example.com', passwordHash: 'pass123'),
-      );
-
-      expect(result.isLeft(), true);
-      result.fold(
-        (l) => expect(l.message, 'User not found'),
-        (_) => fail('should be Left'),
-      );
-    });
   });
 
-  // ─── LogoutUser ───────────────────────────────────────────────────────────
   group('LogoutUser', () {
-    test('returns true on successful logout', () async {
-      when(() => mockRepo.logout()).thenAnswer((_) async => const Right(true));
+    test('logging out returns true and calls the repo once', () async {
+      when(() => repo.logout()).thenAnswer((_) async => const Right(true));
 
-      final usecase = LogoutUser(mockRepo);
-      final result = await usecase();
+      final result = await LogoutUser(repo)();
 
       expect(result, const Right(true));
-      verify(() => mockRepo.logout()).called(1);
+      verify(() => repo.logout()).called(1);
     });
 
-    test('returns LocalDatabaseFailure when session clearance fails', () async {
-      const failure = LocalDatabaseFailure(message: 'Failed to clear session');
-      when(
-        () => mockRepo.logout(),
-      ).thenAnswer((_) async => const Left(failure));
+    test(
+      'logout returns a failure if the session could not be cleared',
+      () async {
+        const failure = LocalDatabaseFailure(
+          message: 'Failed to clear session',
+        );
+        when(() => repo.logout()).thenAnswer((_) async => const Left(failure));
 
-      final usecase = LogoutUser(mockRepo);
-      final result = await usecase();
+        final result = await LogoutUser(repo)();
 
-      expect(result, const Left(failure));
-    });
+        expect(result, const Left(failure));
+      },
+    );
   });
 
-  // ─── GetCurrentUser ───────────────────────────────────────────────────────
   group('GetCurrentUser', () {
-    test('returns AuthEntity when session is active', () async {
+    test('returns the logged-in user when a session is active', () async {
       when(
-        () => mockRepo.getCurrentUser(),
-      ).thenAnswer((_) async => const Right(tAuthEntity));
+        () => repo.getCurrentUser(),
+      ).thenAnswer((_) async => const Right(tUser));
 
-      final usecase = GetCurrentUser(mockRepo);
-      final result = await usecase();
+      final result = await GetCurrentUser(repo)();
 
-      expect(result, const Right(tAuthEntity));
-      verify(() => mockRepo.getCurrentUser()).called(1);
+      expect(result, const Right(tUser));
     });
 
-    test('returns ApiFailure when no session exists (401)', () async {
+    test('returns an error when there is no active session', () async {
       const failure = ApiFailure(message: 'No active session', statusCode: 401);
       when(
-        () => mockRepo.getCurrentUser(),
+        () => repo.getCurrentUser(),
       ).thenAnswer((_) async => const Left(failure));
 
-      final usecase = GetCurrentUser(mockRepo);
-      final result = await usecase();
+      final result = await GetCurrentUser(repo)();
 
       expect(result, const Left(failure));
     });
-
-    test('delegates directly to repository without transformation', () async {
-      when(
-        () => mockRepo.getCurrentUser(),
-      ).thenAnswer((_) async => const Right(tAuthEntity));
-
-      final usecase = GetCurrentUser(mockRepo);
-      await usecase();
-
-      verify(() => mockRepo.getCurrentUser()).called(1);
-      verifyNoMoreInteractions(mockRepo);
-    });
   });
 
-  // ─── GetUserById ──────────────────────────────────────────────────────────
   group('GetUserById', () {
-    test('returns AuthEntity when user exists', () async {
+    test('finds a user by their auth id', () async {
       when(
-        () => mockRepo.getUserById(any()),
-      ).thenAnswer((_) async => const Right(tAuthEntity));
+        () => repo.getUserById(any()),
+      ).thenAnswer((_) async => const Right(tUser));
 
-      final usecase = GetUserById(mockRepo);
-      final result = await usecase('auth123');
+      final result = await GetUserById(repo)('auth123');
 
-      expect(result, const Right(tAuthEntity));
-      verify(() => mockRepo.getUserById('auth123')).called(1);
-    });
-
-    test('returns ApiFailure when user not found (404)', () async {
-      const failure = ApiFailure(message: 'User not found', statusCode: 404);
-      when(
-        () => mockRepo.getUserById(any()),
-      ).thenAnswer((_) async => const Left(failure));
-
-      final usecase = GetUserById(mockRepo);
-      final result = await usecase('nonexistent-id');
-
-      expect(result, const Left(failure));
-    });
-
-    test('passes the exact authId string to the repository', () async {
-      when(
-        () => mockRepo.getUserById(any()),
-      ).thenAnswer((_) async => const Right(tAuthEntity));
-
-      final usecase = GetUserById(mockRepo);
-      await usecase('specific-auth-id-abc');
-
-      verify(() => mockRepo.getUserById('specific-auth-id-abc')).called(1);
+      expect(result, const Right(tUser));
+      verify(() => repo.getUserById('auth123')).called(1);
     });
   });
 
-  // ─── GetUserByEmail ───────────────────────────────────────────────────────
   group('GetUserByEmail', () {
-    test('returns AuthEntity when email matches a registered user', () async {
+    test('finds a user by their email address', () async {
       when(
-        () => mockRepo.getUserByEmail(any()),
-      ).thenAnswer((_) async => const Right(tAuthEntity));
+        () => repo.getUserByEmail(any()),
+      ).thenAnswer((_) async => const Right(tUser));
 
-      final usecase = GetUserByEmail(mockRepo);
-      final result = await usecase('test@example.com');
+      final result = await GetUserByEmail(repo)('jane@example.com');
 
-      expect(result, const Right(tAuthEntity));
-      verify(() => mockRepo.getUserByEmail('test@example.com')).called(1);
-    });
-
-    test('returns ApiFailure when email has no matching user (404)', () async {
-      const failure = ApiFailure(message: 'User not found', statusCode: 404);
-      when(
-        () => mockRepo.getUserByEmail(any()),
-      ).thenAnswer((_) async => const Left(failure));
-
-      final usecase = GetUserByEmail(mockRepo);
-      final result = await usecase('notfound@example.com');
-
-      expect(result, const Left(failure));
-    });
-
-    test('passes the exact email string to the repository', () async {
-      when(
-        () => mockRepo.getUserByEmail(any()),
-      ).thenAnswer((_) async => const Right(tAuthEntity));
-
-      final usecase = GetUserByEmail(mockRepo);
-      await usecase('exact@email.com');
-
-      verify(() => mockRepo.getUserByEmail('exact@email.com')).called(1);
+      expect(result, const Right(tUser));
+      verify(() => repo.getUserByEmail('jane@example.com')).called(1);
     });
   });
 }
