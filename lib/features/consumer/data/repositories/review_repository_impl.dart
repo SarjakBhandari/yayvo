@@ -26,7 +26,9 @@ class ReviewRepositoryImpl implements IReviewRepository {
   ReviewRepositoryImpl(this._remote, this._local, this._networkInfo);
 
   @override
-  Future<Either<Failure, ReviewEntity>> createReview(ReviewEntity review) async {
+  Future<Either<Failure, ReviewEntity>> createReview(
+    ReviewEntity review,
+  ) async {
     try {
       final payload = {
         'title': review.title,
@@ -50,8 +52,15 @@ class ReviewRepositoryImpl implements IReviewRepository {
     ReviewEntity updates,
   ) async {
     try {
-      // If your API has update review endpoint, call it here
-      return Right(updates);
+      final payload = {
+        'title': updates.title,
+        'description': updates.description,
+        if (updates.productName != null && updates.productName!.isNotEmpty)
+          'productName': updates.productName,
+        'sentiments': updates.sentiments,
+      };
+      final model = await _remote.updateReview(id, payload);
+      return Right(model.id.isNotEmpty ? model.toEntity() : updates);
     } catch (e) {
       return Left(ApiFailure(message: e.toString()));
     }
@@ -60,7 +69,7 @@ class ReviewRepositoryImpl implements IReviewRepository {
   @override
   Future<Either<Failure, bool>> deleteReview(String id) async {
     try {
-      // If your API has delete review, call it here
+      await _remote.deleteReview(id);
       return const Right(true);
     } catch (e) {
       return Left(ApiFailure(message: e.toString()));
@@ -82,39 +91,39 @@ class ReviewRepositoryImpl implements IReviewRepository {
       } catch (e) {
         final cached = _local.getCachedReviews();
         if (cached.isNotEmpty) {
-          return Right(PaginatedReviews(
-            items: cached.map((e) => e.toEntity()).toList(),
-            hasMore: false,
-          ));
+          return Right(
+            PaginatedReviews(
+              items: cached.map((e) => e.toEntity()).toList(),
+              hasMore: false,
+            ),
+          );
         }
         return Left(ApiFailure(message: e.toString()));
       }
     }
     final cached = _local.getCachedReviews();
     if (cached.isNotEmpty) {
-      return Right(PaginatedReviews(
-        items: cached.map((e) => e.toEntity()).toList(),
-        hasMore: false,
-      ));
+      return Right(
+        PaginatedReviews(
+          items: cached.map((e) => e.toEntity()).toList(),
+          hasMore: false,
+        ),
+      );
     }
     return const Left(ApiFailure(message: 'Offline. No cached reviews.'));
   }
 
   @override
-  Future<Either<Failure, List<ReviewEntity>>> getReviewsByAuthor(String authorId) async {
+  Future<Either<Failure, List<ReviewEntity>>> getReviewsByAuthor(
+    String authorId,
+  ) async {
     if (authorId.isEmpty) return const Right([]);
     if (await _networkInfo.isConnected) {
       try {
         final list = await _remote.getReviewsByAuthor(authorId);
         return Right(list.map((e) => e.toEntity()).toList());
       } catch (e) {
-        // Offline: return cached reviews that match authorId if any
-        final cached = _local.getCachedReviews();
-        final filtered = cached
-            .where((m) => m.authorId == authorId)
-            .map((e) => e.toEntity())
-            .toList();
-        return Right(filtered);
+        return Left(ApiFailure(message: e.toString()));
       }
     }
     final cached = _local.getCachedReviews();
@@ -126,7 +135,10 @@ class ReviewRepositoryImpl implements IReviewRepository {
   }
 
   @override
-  Future<Either<Failure, bool>> likeReview(String reviewId, String userId) async {
+  Future<Either<Failure, bool>> likeReview(
+    String reviewId,
+    String userId,
+  ) async {
     try {
       await _remote.likeReview(reviewId, userId);
       return const Right(true);
@@ -136,7 +148,10 @@ class ReviewRepositoryImpl implements IReviewRepository {
   }
 
   @override
-  Future<Either<Failure, bool>> unlikeReview(String reviewId, String userId) async {
+  Future<Either<Failure, bool>> unlikeReview(
+    String reviewId,
+    String userId,
+  ) async {
     try {
       await _remote.unlikeReview(reviewId, userId);
       return const Right(true);
@@ -155,7 +170,10 @@ class ReviewRepositoryImpl implements IReviewRepository {
   }
 
   @override
-  Future<Either<Failure, void>> uploadReviewImage(String reviewId, dynamic imageFile) async {
+  Future<Either<Failure, void>> uploadReviewImage(
+    String reviewId,
+    dynamic imageFile,
+  ) async {
     try {
       final file = imageFile as File;
       final formData = FormData.fromMap({

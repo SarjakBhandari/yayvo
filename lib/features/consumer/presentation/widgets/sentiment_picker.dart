@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:yayvo/features/consumer/presentation/theme/consumer_theme.dart';
 
 const List<SentimentOption> kSentimentOptions = [
   SentimentOption(key: 'calm', label: 'Calm', emoji: '🌊'),
@@ -44,6 +45,11 @@ class SentimentPicker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final surfaceColor = ConsumerTheme.surfaceOf(context);
+    final primaryTextColor = ConsumerTheme.primaryTextOf(context);
+    final bodyTextColor = ConsumerTheme.bodyTextOf(context);
+    final borderColor = ConsumerTheme.borderOf(context);
+
     return Wrap(
       spacing: 10,
       runSpacing: 10,
@@ -54,12 +60,10 @@ class SentimentPicker extends StatelessWidget {
           child: Container(
             width: 104,
             decoration: BoxDecoration(
-              color: const Color(0xFFFAFAF8),
+              color: surfaceColor,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: isActive
-                    ? const Color(0xFF1A1612)
-                    : const Color(0xFFE8E4DC),
+                color: isActive ? primaryTextColor : borderColor,
                 width: isActive ? 1.5 : 1,
               ),
               boxShadow: [
@@ -81,9 +85,7 @@ class SentimentPicker extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: isActive ? FontWeight.w700 : FontWeight.w600,
-                    color: isActive
-                        ? const Color(0xFF1A1612)
-                        : const Color(0xFF5A4C38),
+                    color: isActive ? primaryTextColor : bodyTextColor,
                   ),
                   textAlign: TextAlign.center,
                 ),

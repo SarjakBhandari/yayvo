@@ -172,8 +172,6 @@ class _ConsumerRegistrationScreenState
 
   @override
   Widget build(BuildContext context) {
-    final authState = ref.watch(authViewModelProvider);
-
     ref.listen<AuthState>(authViewModelProvider, (previous, next) {
       if (next.status == AuthStatus.error && next.errorMessage != null) {
         showMySnackBar(
@@ -189,232 +187,244 @@ class _ConsumerRegistrationScreenState
       }
     });
 
+    final textColor = Theme.of(context).colorScheme.onSurface;
+    final primaryColor = Theme.of(context).colorScheme.primary;
+
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: Center(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(15.0),
-            child: Column(
-              children: [
-                MyLogo(size: 100, radius: 24),
-                const SizedBox(height: 30),
-                const Text(
-                  "Create Consumer Account",
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 15),
-                Form(
-                  key: _formKey,
-                  child: Column(
-                    children: [
-                      MyTextFormField(
-                        controller: _nameController,
-                        label: "Full name",
-                        prefixIcon: Icons.person,
-                        onChanged: (val) {},
-                        validator: (value) => value == null || value.isEmpty
-                            ? "Please enter your name"
-                            : null,
-                      ),
-                      const SizedBox(height: 15),
-                      MyTextFormField(
-                        controller: _emailController,
-                        label: "Email",
-                        prefixIcon: Icons.email,
-                        onChanged: (val) {},
-                        validator: (value) {
-                          final v = (value ?? "").trim();
-                          if (v.isEmpty) return "Please enter your email";
-                          if (!_emailRegex.hasMatch(v))
-                            return "Enter a valid email";
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 15),
-                      // Date of birth field uses date picker
-                      GestureDetector(
-                        onTap: _pickDob,
-                        child: AbsorbPointer(
-                          child: MyTextFormField(
-                            controller: _dobController,
-                            label: "Date of Birth",
-                            prefixIcon: Icons.calendar_today,
-                            onChanged: (val) {},
-                            validator: (value) => value == null || value.isEmpty
-                                ? "Please select your DOB"
-                                : null,
-                          ),
+      resizeToAvoidBottomInset: false,
+      body: MediaQuery(
+        // Remove viewInsets so keyboard animation frames don't propagate
+        // MediaQuery changes into the widget tree, preventing per-frame rebuilds.
+        data: MediaQuery.of(context).removeViewInsets(removeBottom: true),
+        child: Center(
+          child: SingleChildScrollView(
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(15, 15, 15, 100),
+              child: Column(
+                children: [
+                  MyLogo(size: 100, radius: 24),
+                  const SizedBox(height: 30),
+                  const Text(
+                    "Create Consumer Account",
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 15),
+                  Form(
+                    key: _formKey,
+                    child: Column(
+                      children: [
+                        MyTextFormField(
+                          controller: _nameController,
+                          label: "Full name",
+                          prefixIcon: Icons.person,
+                          onChanged: (val) {},
+                          validator: (value) => value == null || value.isEmpty
+                              ? "Please enter your name"
+                              : null,
                         ),
-                      ),
-                      const SizedBox(height: 15),
-                      // Username field removed from UI (auto-generated)
-                      // Phone field
-                      MyTextFormField(
-                        controller: _phoneController,
-                        label: "Phone",
-                        prefixIcon: Icons.phone,
-                        onChanged: (val) {},
-                        validator: (value) => value == null || value.isEmpty
-                            ? "Please enter phone"
-                            : null,
-                      ),
-                      const SizedBox(height: 15),
-                      Row(
-                        children: [
-                          const Text(
-                            "Gender:",
-                            style: TextStyle(color: Colors.black),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Row(
-                              children: [
-                                Radio<String>(
-                                  value: "Male",
-                                  groupValue: _gender,
-                                  onChanged: (value) =>
-                                      setState(() => _gender = value!),
-                                ),
-                                const Text(
-                                  "Male",
-                                  style: TextStyle(color: Colors.black),
-                                ),
-                                Radio<String>(
-                                  value: "Female",
-                                  groupValue: _gender,
-                                  onChanged: (value) =>
-                                      setState(() => _gender = value!),
-                                ),
-                                const Text(
-                                  "Female",
-                                  style: TextStyle(color: Colors.black),
-                                ),
-                                Radio<String>(
-                                  value: "Other",
-                                  groupValue: _gender,
-                                  onChanged: (value) =>
-                                      setState(() => _gender = value!),
-                                ),
-                                const Text(
-                                  "Other",
-                                  style: TextStyle(color: Colors.black),
-                                ),
-                              ],
+                        const SizedBox(height: 15),
+                        MyTextFormField(
+                          controller: _emailController,
+                          label: "Email",
+                          prefixIcon: Icons.email,
+                          onChanged: (val) {},
+                          validator: (value) {
+                            final v = (value ?? "").trim();
+                            if (v.isEmpty) return "Please enter your email";
+                            if (!_emailRegex.hasMatch(v))
+                              return "Enter a valid email";
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 15),
+                        // Date of birth field uses date picker
+                        GestureDetector(
+                          onTap: _pickDob,
+                          child: AbsorbPointer(
+                            child: MyTextFormField(
+                              controller: _dobController,
+                              label: "Date of Birth",
+                              prefixIcon: Icons.calendar_today,
+                              onChanged: (val) {},
+                              validator: (value) =>
+                                  value == null || value.isEmpty
+                                  ? "Please select your DOB"
+                                  : null,
                             ),
                           ),
-                        ],
-                      ),
-                      const SizedBox(height: 15),
-                      MyDropdownButtonFormField(
-                        label: "Country",
-                        prefixIcon: Icons.location_pin,
-                        items: _countries,
-                        value: _selectedCountry,
-                        onChanged: (val) {
-                          setState(() {
-                            _selectedCountry = val;
-                            _addressController.text = val ?? "";
-                          });
-                        },
-                        validator: (value) => value == null || value.isEmpty
-                            ? "Please select your country"
-                            : null,
-                      ),
-                      const SizedBox(height: 15),
-                      MyTextFormField(
-                        controller: _passwordController,
-                        label: "Password",
-                        prefixIcon: Icons.key,
-                        obscureText: _obscurePassword,
-                        onChanged: (val) {},
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscurePassword
-                                ? Icons.visibility_off
-                                : Icons.visibility,
-                            color: Colors.black,
-                          ),
-                          onPressed: () => setState(
-                            () => _obscurePassword = !_obscurePassword,
-                          ),
                         ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty)
-                            return "Please enter a password";
-                          if (value.length < 8)
-                            return "Password must be at least 8 characters";
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 15),
-                      MyTextFormField(
-                        controller: _confirmPasswordController,
-                        label: "Confirm Password",
-                        prefixIcon: Icons.key,
-                        obscureText: _obscureConfirmPassword,
-                        onChanged: (val) {},
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscureConfirmPassword
-                                ? Icons.visibility_off
-                                : Icons.visibility,
-                            color: Colors.black,
-                          ),
-                          onPressed: () => setState(
-                            () => _obscureConfirmPassword =
-                                !_obscureConfirmPassword,
-                          ),
+                        const SizedBox(height: 15),
+                        // Username field removed from UI (auto-generated)
+                        // Phone field
+                        MyTextFormField(
+                          controller: _phoneController,
+                          label: "Phone",
+                          prefixIcon: Icons.phone,
+                          onChanged: (val) {},
+                          validator: (value) => value == null || value.isEmpty
+                              ? "Please enter phone"
+                              : null,
                         ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty)
-                            return "Please confirm your password";
-                          if (value != _passwordController.text)
-                            return "Passwords do not match";
-                          return null;
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 20),
-                SizedBox(
-                  width: MediaQuery.of(context).size.width - 150,
-                  height: 45,
-                  child: MyButton(
-                    onPressed: _onSubmit,
-                    text: authState.status == AuthStatus.loading
-                        ? "Registering..."
-                        : "Register",
-                  ),
-                ),
-                const SizedBox(height: 20),
-                GestureDetector(
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const LoginScreen(),
-                    ),
-                  ),
-                  child: RichText(
-                    text: const TextSpan(
-                      text: "Already registered? ",
-                      style: TextStyle(color: Colors.black, fontSize: 14),
-                      children: [
-                        TextSpan(
-                          text: "Login",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            decoration: TextDecoration.underline,
-                            color: Colors.blueAccent,
+                        const SizedBox(height: 15),
+                        Row(
+                          children: [
+                            Text("Gender:", style: TextStyle(color: textColor)),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Row(
+                                children: [
+                                  Radio<String>(
+                                    value: "Male",
+                                    groupValue: _gender,
+                                    onChanged: (value) =>
+                                        setState(() => _gender = value!),
+                                  ),
+                                  Text(
+                                    "Male",
+                                    style: TextStyle(color: textColor),
+                                  ),
+                                  Radio<String>(
+                                    value: "Female",
+                                    groupValue: _gender,
+                                    onChanged: (value) =>
+                                        setState(() => _gender = value!),
+                                  ),
+                                  Text(
+                                    "Female",
+                                    style: TextStyle(color: textColor),
+                                  ),
+                                  Radio<String>(
+                                    value: "Other",
+                                    groupValue: _gender,
+                                    onChanged: (value) =>
+                                        setState(() => _gender = value!),
+                                  ),
+                                  Text(
+                                    "Other",
+                                    style: TextStyle(color: textColor),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 15),
+                        MyDropdownButtonFormField(
+                          label: "Country",
+                          prefixIcon: Icons.location_pin,
+                          items: _countries,
+                          value: _selectedCountry,
+                          onChanged: (val) {
+                            setState(() {
+                              _selectedCountry = val;
+                              _addressController.text = val ?? "";
+                            });
+                          },
+                          validator: (value) => value == null || value.isEmpty
+                              ? "Please select your country"
+                              : null,
+                        ),
+                        const SizedBox(height: 15),
+                        MyTextFormField(
+                          controller: _passwordController,
+                          label: "Password",
+                          prefixIcon: Icons.key,
+                          obscureText: _obscurePassword,
+                          onChanged: (val) {},
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _obscurePassword
+                                  ? Icons.visibility_off
+                                  : Icons.visibility,
+                              color: textColor,
+                            ),
+                            onPressed: () => setState(
+                              () => _obscurePassword = !_obscurePassword,
+                            ),
                           ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty)
+                              return "Please enter a password";
+                            if (value.length < 8)
+                              return "Password must be at least 8 characters";
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 15),
+                        MyTextFormField(
+                          controller: _confirmPasswordController,
+                          label: "Confirm Password",
+                          prefixIcon: Icons.key,
+                          obscureText: _obscureConfirmPassword,
+                          onChanged: (val) {},
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _obscureConfirmPassword
+                                  ? Icons.visibility_off
+                                  : Icons.visibility,
+                              color: textColor,
+                            ),
+                            onPressed: () => setState(
+                              () => _obscureConfirmPassword =
+                                  !_obscureConfirmPassword,
+                            ),
+                          ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty)
+                              return "Please confirm your password";
+                            if (value != _passwordController.text)
+                              return "Passwords do not match";
+                            return null;
+                          },
                         ),
                       ],
                     ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 20),
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width - 150,
+                    height: 45,
+                    child: Consumer(
+                      builder: (context, ref, _) {
+                        final isLoading =
+                            ref.watch(authViewModelProvider).status ==
+                            AuthStatus.loading;
+                        return MyButton(
+                          onPressed: _onSubmit,
+                          text: isLoading ? "Registering..." : "Register",
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  GestureDetector(
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const LoginScreen(),
+                      ),
+                    ),
+                    child: RichText(
+                      text: TextSpan(
+                        text: "Already registered? ",
+                        style: TextStyle(color: textColor, fontSize: 14),
+                        children: [
+                          TextSpan(
+                            text: "Login",
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              decoration: TextDecoration.underline,
+                              color: primaryColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

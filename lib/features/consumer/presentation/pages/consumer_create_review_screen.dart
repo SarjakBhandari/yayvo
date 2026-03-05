@@ -8,6 +8,7 @@ import 'package:yayvo/features/consumer/presentation/shell/consumer_routes.dart'
 import 'package:yayvo/features/consumer/data/repositories/review_repository_impl.dart';
 import 'package:yayvo/features/consumer/domain/entities/review_entity.dart';
 import 'package:yayvo/features/consumer/domain/usecases/create_review.dart';
+import 'package:yayvo/features/consumer/presentation/providers/consumer_providers.dart';
 import 'package:yayvo/features/consumer/presentation/theme/consumer_theme.dart';
 import 'package:yayvo/features/consumer/presentation/widgets/sentiment_picker.dart';
 import 'package:yayvo/core/services/connectivity/network_info.dart';
@@ -96,12 +97,18 @@ class _ConsumerCreateReviewScreenState
       return;
     }
 
+    // Use the consumer document _id as authorId — the backend stores reviews
+    // keyed to the consumer doc _id, not the auth _id.
+    final consumerProfile = ref.read(consumerByAuthIdProvider(authId)).value;
+    final effectiveAuthorId = consumerProfile?.id ?? authId;
+
     final connected = await ref.read(networkInfoProvider).isConnected;
     if (!connected && mounted) {
       setState(() => _error = 'No internet connection');
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No internet connection')),
-      );
+      if (mounted)
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('No internet connection')));
       return;
     }
 
@@ -114,7 +121,7 @@ class _ConsumerCreateReviewScreenState
       id: '',
       title: title,
       description: _descriptionController.text.trim(),
-      authorId: authId,
+      authorId: effectiveAuthorId,
       productName: _productNameController.text.trim().isEmpty
           ? null
           : _productNameController.text.trim(),
@@ -151,205 +158,218 @@ class _ConsumerCreateReviewScreenState
       if (prev != next && next > 0) _resetForm();
     });
 
+    final surfaceColor = ConsumerTheme.surfaceOf(context);
+    final primaryTextColor = ConsumerTheme.primaryTextOf(context);
+    final bodyTextColor = ConsumerTheme.bodyTextOf(context);
+    final mutedColor = ConsumerTheme.mutedOf(context);
+    final borderColor = ConsumerTheme.borderOf(context);
+
     return Center(
       child: SingleChildScrollView(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 680),
           child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              children: [
-                IconButton(
-                  onPressed: () => ref.read(currentConsumerRouteProvider.notifier).state =
-                      ConsumerRoute.home,
-                  icon: const Icon(Icons.arrow_back_rounded),
-                  style: IconButton.styleFrom(
-                    backgroundColor: ConsumerTheme.surface,
-                    side: const BorderSide(color: ConsumerTheme.border),
-                  ),
-                ),
-                const SizedBox(width: 14),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'SHARE YOUR THOUGHTS',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: ConsumerTheme.muted,
-                        letterSpacing: 0.14,
-                      ),
-                    ),
-                    Text(
-                      'Create Review',
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.w700,
-                        color: ConsumerTheme.primaryText,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            const SizedBox(height: 28),
-            if (_error != null) ...[
-              Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFFF8F5),
-                  border: Border.all(color: ConsumerTheme.errorBorder),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  _error!,
-                  style: const TextStyle(color: ConsumerTheme.error),
-                ),
-              ),
-              const SizedBox(height: 20),
-            ],
-            TextField(
-              controller: _titleController,
-              decoration: const InputDecoration(
-                labelText: 'Title *',
-                hintText: 'Short, descriptive title…',
-              ),
-            ),
-            const SizedBox(height: 20),
-            TextField(
-              controller: _descriptionController,
-              maxLines: 5,
-              decoration: const InputDecoration(
-                labelText: 'Description',
-                hintText: 'Write your review in detail…',
-                alignLabelWithHint: true,
-              ),
-            ),
-            const SizedBox(height: 20),
-            TextField(
-              controller: _productNameController,
-              decoration: const InputDecoration(
-                labelText: 'Product Name',
-                hintText: 'What product are you reviewing? (optional)',
-              ),
-            ),
-            const SizedBox(height: 20),
-            Text(
-              'SENTIMENTS',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: ConsumerTheme.bodyText,
-                letterSpacing: 0.08,
-              ),
-            ),
-            const SizedBox(height: 6),
-            SentimentPicker(
-              selected: _sentiments,
-              onChange: (v) => setState(() => _sentiments = v),
-            ),
-            const SizedBox(height: 20),
-            Text(
-              'PRODUCT IMAGE',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: ConsumerTheme.bodyText,
-              ),
-            ),
-            const SizedBox(height: 6),
-            if (_imageFile != null)
-              Stack(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
                 children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(14),
-                    child: Image.file(
-                      _imageFile!,
-                      height: 220,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
+                  IconButton(
+                    onPressed: () =>
+                        ref.read(currentConsumerRouteProvider.notifier).state =
+                            ConsumerRoute.home,
+                    icon: const Icon(Icons.arrow_back_rounded),
+                    style: IconButton.styleFrom(
+                      backgroundColor: surfaceColor,
+                      side: BorderSide(color: borderColor),
                     ),
                   ),
-                  Positioned(
-                    top: 10,
-                    right: 10,
-                    child: IconButton(
-                      onPressed: () => setState(() => _imageFile = null),
-                      icon: const Icon(Icons.close),
-                      style: IconButton.styleFrom(
-                        backgroundColor: Colors.black54,
-                        foregroundColor: Colors.white,
-                      ),
-                    ),
-                  ),
-                ],
-              )
-            else
-              GestureDetector(
-                onTap: _pickImage,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 20),
-                  decoration: BoxDecoration(
-                    color: ConsumerTheme.surface,
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(
-                      color: ConsumerTheme.border,
-                      width: 2,
-                      strokeAlign: BorderSide.strokeAlignInside,
-                    ),
-                  ),
-                  child: Column(
+                  const SizedBox(width: 14),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(Icons.upload_rounded,
-                          size: 44, color: ConsumerTheme.accent),
-                      const SizedBox(height: 10),
                       Text(
-                        'Drop an image here or tap to browse',
+                        'SHARE YOUR THOUGHTS',
                         style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: ConsumerTheme.bodyText,
+                          fontSize: 11,
+                          color: mutedColor,
+                          letterSpacing: 0.14,
                         ),
                       ),
                       Text(
-                        'PNG, JPG, WEBP up to 10 MB',
+                        'Create Review',
                         style: TextStyle(
-                          fontSize: 12,
-                          color: ConsumerTheme.muted,
+                          fontSize: 28,
+                          fontWeight: FontWeight.w700,
+                          color: primaryTextColor,
                         ),
                       ),
                     ],
                   ),
+                ],
+              ),
+              const SizedBox(height: 28),
+              if (_error != null) ...[
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: surfaceColor,
+                    border: Border.all(color: ConsumerTheme.errorBorder),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    _error!,
+                    style: const TextStyle(color: ConsumerTheme.error),
+                  ),
+                ),
+                const SizedBox(height: 20),
+              ],
+              TextField(
+                controller: _titleController,
+                decoration: const InputDecoration(
+                  labelText: 'Title *',
+                  hintText: 'Short, descriptive title…',
                 ),
               ),
-            const SizedBox(height: 24),
-            Row(
-              children: [
-                FilledButton(
-                  onPressed: _submitting ? null : _submit,
-                  child: _submitting
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Text('Publish Review'),
+              const SizedBox(height: 20),
+              TextField(
+                controller: _descriptionController,
+                maxLines: 5,
+                decoration: const InputDecoration(
+                  labelText: 'Description',
+                  hintText: 'Write your review in detail…',
+                  alignLabelWithHint: true,
                 ),
-                const SizedBox(width: 10),
-                OutlinedButton(
-                  onPressed: _submitting
-                      ? null
-                      : () => ref.read(currentConsumerRouteProvider.notifier).state =
-                          ConsumerRoute.home,
-                  child: const Text('Cancel'),
+              ),
+              const SizedBox(height: 20),
+              TextField(
+                controller: _productNameController,
+                decoration: const InputDecoration(
+                  labelText: 'Product Name',
+                  hintText: 'What product are you reviewing? (optional)',
                 ),
-              ],
-            ),
-          ],
+              ),
+              const SizedBox(height: 20),
+              Text(
+                'SENTIMENTS',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: bodyTextColor,
+                  letterSpacing: 0.08,
+                ),
+              ),
+              const SizedBox(height: 6),
+              SentimentPicker(
+                selected: _sentiments,
+                onChange: (v) => setState(() => _sentiments = v),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                'PRODUCT IMAGE',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: bodyTextColor,
+                ),
+              ),
+              const SizedBox(height: 6),
+              if (_imageFile != null)
+                Stack(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(14),
+                      child: Image.file(
+                        _imageFile!,
+                        height: 220,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    Positioned(
+                      top: 10,
+                      right: 10,
+                      child: IconButton(
+                        onPressed: () => setState(() => _imageFile = null),
+                        icon: const Icon(Icons.close),
+                        style: IconButton.styleFrom(
+                          backgroundColor: Colors.black54,
+                          foregroundColor: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ],
+                )
+              else
+                GestureDetector(
+                  onTap: _pickImage,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 32,
+                      horizontal: 20,
+                    ),
+                    decoration: BoxDecoration(
+                      color: surfaceColor,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: borderColor,
+                        width: 2,
+                        strokeAlign: BorderSide.strokeAlignInside,
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        Icon(
+                          Icons.upload_rounded,
+                          size: 44,
+                          color: ConsumerTheme.accent,
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          'Drop an image here or tap to browse',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: bodyTextColor,
+                          ),
+                        ),
+                        Text(
+                          'PNG, JPG, WEBP up to 10 MB',
+                          style: TextStyle(fontSize: 12, color: mutedColor),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  FilledButton(
+                    onPressed: _submitting ? null : _submit,
+                    child: _submitting
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Text('Publish Review'),
+                  ),
+                  const SizedBox(width: 10),
+                  OutlinedButton(
+                    onPressed: _submitting
+                        ? null
+                        : () =>
+                              ref
+                                  .read(currentConsumerRouteProvider.notifier)
+                                  .state = ConsumerRoute
+                                  .home,
+                    child: const Text('Cancel'),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
-    ),
     );
   }
 }

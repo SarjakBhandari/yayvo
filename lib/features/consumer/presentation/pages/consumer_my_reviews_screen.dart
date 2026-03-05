@@ -18,7 +18,8 @@ class ConsumerMyReviewsScreen extends ConsumerStatefulWidget {
       _ConsumerMyReviewsScreenState();
 }
 
-class _ConsumerMyReviewsScreenState extends ConsumerState<ConsumerMyReviewsScreen> {
+class _ConsumerMyReviewsScreenState
+    extends ConsumerState<ConsumerMyReviewsScreen> {
   List<ReviewEntity> _reviews = [];
   bool _loading = true;
   String? _error;
@@ -38,13 +39,17 @@ class _ConsumerMyReviewsScreenState extends ConsumerState<ConsumerMyReviewsScree
       });
       return;
     }
+    // Use the consumer document _id as authorId — the backend stores reviews
+    // keyed to the consumer doc _id, not the auth _id.
+    final consumerProfile = ref.read(consumerByAuthIdProvider(authId)).value;
+    final effectiveAuthorId = consumerProfile?.id ?? authId;
     setState(() {
       _loading = true;
       _error = null;
     });
     try {
       final repo = ref.read(reviewRepositoryProvider);
-      final result = await repo.getReviewsByAuthor(authId);
+      final result = await repo.getReviewsByAuthor(effectiveAuthorId);
       if (!mounted) return;
       result.fold(
         (f) => setState(() {
@@ -102,95 +107,121 @@ class _ConsumerMyReviewsScreenState extends ConsumerState<ConsumerMyReviewsScree
           child: _loading && _reviews.isEmpty
               ? const Center(child: CircularProgressIndicator())
               : _error != null && _reviews.isEmpty
-                  ? Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(24),
-                        child: Text(
+              ? Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.error_outline_rounded,
+                          size: 48,
+                          color: ConsumerTheme.mutedOf(context),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
                           _error!,
                           textAlign: TextAlign.center,
-                          style: TextStyle(color: ConsumerTheme.bodyTextOf(context)),
+                          style: TextStyle(
+                            color: ConsumerTheme.bodyTextOf(context),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        FilledButton.icon(
+                          onPressed: _load,
+                          icon: const Icon(Icons.refresh_rounded, size: 18),
+                          label: const Text('Retry'),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              : _reviews.isEmpty
+              ? SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const SizedBox(height: 48),
+                        Icon(
+                          Icons.rate_review_outlined,
+                          size: 64,
+                          color: ConsumerTheme.mutedOf(context),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'No reviews yet',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w700,
+                            color: ConsumerTheme.primaryTextOf(context),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Reviews you create will appear here.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: ConsumerTheme.mutedOf(context),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              : ListView.builder(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                  itemCount: _reviews.length,
+                  itemBuilder: (context, index) {
+                    final review = _reviews[index];
+                    final maxW = MediaQuery.sizeOf(context).width > 600
+                        ? 480.0
+                        : 380.0;
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: Center(
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(maxWidth: maxW),
+                          child: ReviewCard(
+                            review: review,
+                            currentUserId: authId,
+                            authorName: displayName,
+                            isOnline: isOnline,
+                            onTap: (r, authorName) async {
+                              final connected = await ref
+                                  .read(networkInfoProvider)
+                                  .isConnected;
+                              if (!context.mounted) return;
+                              await ReviewDetailDialog.show(
+                                context,
+                                r,
+                                authorName: authorName,
+                                isOwner: true,
+                                isOnline: connected,
+                                onDeleted: () => _load(),
+                                onUpdated: (updated) {
+                                  if (!mounted) return;
+                                  setState(() {
+                                    final i = _reviews.indexWhere(
+                                      (rev) => rev.id == r.id,
+                                    );
+                                    if (i >= 0) {
+                                      _reviews = List.from(_reviews)
+                                        ..[i] = updated;
+                                    }
+                                  });
+                                },
+                              );
+                            },
+                          ),
                         ),
                       ),
-                    )
-                  : _reviews.isEmpty
-                      ? SingleChildScrollView(
-                          physics: const AlwaysScrollableScrollPhysics(),
-                          child: Padding(
-                            padding: const EdgeInsets.all(24),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const SizedBox(height: 48),
-                                Icon(
-                                  Icons.rate_review_outlined,
-                                  size: 64,
-                                  color: ConsumerTheme.mutedOf(context),
-                                ),
-                                const SizedBox(height: 16),
-                                Text(
-                                  'No reviews yet',
-                                  style: TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.w700,
-                                    color: ConsumerTheme.primaryTextOf(context),
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  'Reviews you create will appear here.',
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: ConsumerTheme.mutedOf(context),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        )
-                      : ListView.builder(
-                          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-                          itemCount: _reviews.length,
-                          itemBuilder: (context, index) {
-                            final review = _reviews[index];
-                            final maxW = MediaQuery.sizeOf(context).width > 600 ? 480.0 : 380.0;
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 12),
-                              child: Center(
-                                child: ConstrainedBox(
-                                  constraints: BoxConstraints(maxWidth: maxW),
-                                  child: ReviewCard(
-                                    review: review,
-                                    currentUserId: authId,
-                                    authorName: displayName,
-                                    isOnline: isOnline,
-                                    onTap: (r, authorName) async {
-                                      final connected = await ref.read(networkInfoProvider).isConnected;
-                                      if (!context.mounted) return;
-                                      await ReviewDetailDialog.show(
-                                        context,
-                                        r,
-                                        authorName: authorName,
-                                        isOwner: true,
-                                        isOnline: connected,
-                                        onDeleted: () => _load(),
-                                        onUpdated: (updated) {
-                                          if (!mounted) return;
-                                          setState(() {
-                                            final i = _reviews.indexWhere((rev) => rev.id == r.id);
-                                            if (i >= 0) {
-                                              _reviews = List.from(_reviews)..[i] = updated;
-                                            }
-                                          });
-                                        },
-                                      );
-                                    },
-                                  ),
-                                ),
-                              ),
-                            );
-                          },
-                        ),
+                    );
+                  },
+                ),
         ),
       ),
     );
