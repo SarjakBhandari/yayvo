@@ -60,8 +60,10 @@ class AuthViewModel extends Notifier<AuthState> {
   Future<void> login({required String email, required String password}) async {
     state = state.copyWith(status: AuthStatus.loading);
 
+    final normalizedEmail = email.trim().toLowerCase();
+
     final result = await _loginUsecase(
-      LoginParams(email: email, passwordHash: password),
+      LoginParams(email: normalizedEmail, passwordHash: password),
     );
 
     result.fold(
@@ -142,6 +144,6 @@ class AuthViewModel extends Notifier<AuthState> {
 
   /// Clear error message
   void clearError() {
-    state = state.copyWith(errorMessage: null);
+    state = state.copyWith(clearError: true);
   }
 }

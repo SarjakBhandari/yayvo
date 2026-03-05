@@ -1,8 +1,10 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:yayvo/features/consumer/domain/entities/review_entity.dart';
 import 'package:yayvo/features/consumer/data/repositories/review_repository_impl.dart';
+import 'package:yayvo/features/consumer/presentation/shell/consumer_shell.dart';
 import 'package:yayvo/core/utils/network_error_helper.dart';
 
 /// State class for my reviews screen
@@ -86,5 +88,13 @@ class MyReviewsViewModel extends StateNotifier<MyReviewsState> {
 /// Provide the view model for my reviews screen
 final myReviewsViewModelProvider =
     StateNotifierProvider<MyReviewsViewModel, MyReviewsState>((ref) {
-      return MyReviewsViewModel(ref: ref);
+      final viewModel = MyReviewsViewModel(ref: ref);
+      // Auto-load reviews when provider is created
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final authId = ref.read(consumerAuthIdProvider);
+        if (authId != null && authId.isNotEmpty) {
+          viewModel.loadReviews(authId);
+        }
+      });
+      return viewModel;
     });

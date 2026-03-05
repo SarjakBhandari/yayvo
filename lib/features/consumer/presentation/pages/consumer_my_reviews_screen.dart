@@ -5,78 +5,19 @@ import 'package:yayvo/features/consumer/domain/entities/review_entity.dart';
 import 'package:yayvo/features/consumer/presentation/theme/consumer_theme.dart';
 import 'package:yayvo/features/consumer/presentation/widgets/review_card.dart';
 import 'package:yayvo/features/consumer/presentation/widgets/review_detail_dialog.dart';
-import 'package:yayvo/features/consumer/data/repositories/review_repository_impl.dart';
+import 'package:yayvo/features/consumer/presentation/viewmodels/my_reviews_viewmodel.dart';
 import 'package:yayvo/features/consumer/presentation/providers/consumer_providers.dart';
 import 'package:yayvo/core/services/connectivity/network_info.dart';
 
 /// Full-screen page showing the current user's reviews, with back button.
-class ConsumerMyReviewsScreen extends ConsumerStatefulWidget {
+class ConsumerMyReviewsScreen extends ConsumerWidget {
   const ConsumerMyReviewsScreen({super.key});
 
   @override
-  ConsumerState<ConsumerMyReviewsScreen> createState() =>
-      _ConsumerMyReviewsScreenState();
-}
-
-class _ConsumerMyReviewsScreenState
-    extends ConsumerState<ConsumerMyReviewsScreen> {
-  List<ReviewEntity> _reviews = [];
-  bool _loading = true;
-  String? _error;
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _load());
-  }
-
-  Future<void> _load() async {
-    final authId = ref.read(consumerAuthIdProvider);
-    if (authId == null || authId.isEmpty) {
-      setState(() {
-        _loading = false;
-        _error = 'Not logged in';
-      });
-      return;
-    }
-    // Use the consumer document _id as authorId — the backend stores reviews
-    // keyed to the consumer doc _id, not the auth _id.
-    final consumerProfile = ref.read(consumerByAuthIdProvider(authId)).value;
-    final effectiveAuthorId = consumerProfile?.id ?? authId;
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
-    try {
-      final repo = ref.read(reviewRepositoryProvider);
-      final result = await repo.getReviewsByAuthor(effectiveAuthorId);
-      if (!mounted) return;
-      result.fold(
-        (f) => setState(() {
-          _reviews = [];
-          _loading = false;
-          _error = f.message;
-        }),
-        (list) => setState(() {
-          _reviews = list;
-          _loading = false;
-          _error = null;
-        }),
-      );
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _reviews = [];
-          _loading = false;
-          _error = e.toString();
-        });
-      }
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final authId = ref.watch(consumerAuthIdProvider);
+    final myReviewsState = ref.watch(myReviewsViewModelProvider);
+    final myReviewsNotifier = ref.read(myReviewsViewModelProvider.notifier);
     final currentUser = authId != null && authId.isNotEmpty
         ? ref.watch(consumerByAuthIdProvider(authId)).value
         : null;
@@ -103,10 +44,10 @@ class _ConsumerMyReviewsScreenState
       ),
       body: SafeArea(
         child: RefreshIndicator(
-          onRefresh: _load,
-          child: _loading && _reviews.isEmpty
+          onRefresh: () => myReviewsNotifier.refresh(authId ?? ''),
+          child: myReviewsState.isLoading && myReviewsState.reviews.isEmpty
               ? const Center(child: CircularProgressIndicator())
-              : _error != null && _reviews.isEmpty
+              : myReviewsState.error != null && myReviewsState.reviews.isEmpty
               ? Center(
                   child: Padding(
                     padding: const EdgeInsets.all(24),
@@ -120,7 +61,7 @@ class _ConsumerMyReviewsScreenState
                         ),
                         const SizedBox(height: 12),
                         Text(
-                          _error!,
+                          myReviewsState.error!,
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             color: ConsumerTheme.bodyTextOf(context),
@@ -128,7 +69,8 @@ class _ConsumerMyReviewsScreenState
                         ),
                         const SizedBox(height: 16),
                         FilledButton.icon(
-                          onPressed: _load,
+                          onPressed: () =>
+                              myReviewsNotifier.refresh(authId ?? ''),
                           icon: const Icon(Icons.refresh_rounded, size: 18),
                           label: const Text('Retry'),
                         ),
@@ -136,7 +78,7 @@ class _ConsumerMyReviewsScreenState
                     ),
                   ),
                 )
-              : _reviews.isEmpty
+              : myReviewsState.reviews.isEmpty
               ? SingleChildScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
                   child: Padding(
@@ -174,9 +116,9 @@ class _ConsumerMyReviewsScreenState
                 )
               : ListView.builder(
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-                  itemCount: _reviews.length,
+                  itemCount: myReviewsState.reviews.length,
                   itemBuilder: (context, index) {
-                    final review = _reviews[index];
+                    final review = myReviewsState.reviews[index];
                     final maxW = MediaQuery.sizeOf(context).width > 600
                         ? 480.0
                         : 380.0;
@@ -201,18 +143,21 @@ class _ConsumerMyReviewsScreenState
                                 authorName: authorName,
                                 isOwner: true,
                                 isOnline: connected,
-                                onDeleted: () => _load(),
+                                onDeleted: () {
+                                  myReviewsNotifier.removeReview(r.id);
+                                },
                                 onUpdated: (updated) {
-                                  if (!mounted) return;
-                                  setState(() {
-                                    final i = _reviews.indexWhere(
-                                      (rev) => rev.id == r.id,
-                                    );
-                                    if (i >= 0) {
-                                      _reviews = List.from(_reviews)
-                                        ..[i] = updated;
-                                    }
-                                  });
+                                  // Update the reviews list with the updated review
+                                  final updated_reviews =
+                                      List<ReviewEntity>.from(
+                                        myReviewsState.reviews,
+                                      );
+                                  final i = updated_reviews.indexWhere(
+                                    (rev) => rev.id == r.id,
+                                  );
+                                  if (i >= 0) {
+                                    updated_reviews[i] = updated;
+                                  }
                                 },
                               );
                             },

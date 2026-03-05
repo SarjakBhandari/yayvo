@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:yayvo/features/consumer/domain/entities/review_entity.dart';
 import 'package:yayvo/features/consumer/domain/entities/product_entity.dart';
