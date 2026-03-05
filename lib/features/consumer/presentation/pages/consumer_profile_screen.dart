@@ -30,6 +30,7 @@ class _ConsumerProfileScreenState extends ConsumerState<ConsumerProfileScreen> {
   bool _uploadingPic = false;
   String? _error;
   ConsumerEntity? _consumer;
+
   /// Bump after upload so CachedNetworkImage loads fresh (same URL, new file on server).
   int _profilePicCacheKey = 0;
 
@@ -67,9 +68,11 @@ class _ConsumerProfileScreenState extends ConsumerState<ConsumerProfileScreen> {
       result.fold(
         (f) => setState(() {
           _loading = false;
-          _error = normalizeNetworkErrorMessage(f.message.contains('401') || f.message.contains('Unauthorized')
-              ? 'Session expired. Please log in again.'
-              : f.message);
+          _error = normalizeNetworkErrorMessage(
+            f.message.contains('401') || f.message.contains('Unauthorized')
+                ? 'Session expired. Please log in again.'
+                : f.message,
+          );
         }),
         (consumer) {
           setState(() {
@@ -97,9 +100,11 @@ class _ConsumerProfileScreenState extends ConsumerState<ConsumerProfileScreen> {
       if (!mounted) return;
       result.fold(
         (f) => setState(() {
-          _error = normalizeNetworkErrorMessage(f.message.contains('401') || f.message.contains('Unauthorized')
-              ? 'Session expired. Please log in again.'
-              : f.message);
+          _error = normalizeNetworkErrorMessage(
+            f.message.contains('401') || f.message.contains('Unauthorized')
+                ? 'Session expired. Please log in again.'
+                : f.message,
+          );
         }),
         (consumer) => setState(() {
           _consumer = consumer;
@@ -156,13 +161,19 @@ class _ConsumerProfileScreenState extends ConsumerState<ConsumerProfileScreen> {
             await DefaultCacheManager().removeFile(baseUrl);
             final withV0 = '$baseUrl${baseUrl.contains('?') ? '&' : '?'}v=0';
             await DefaultCacheManager().removeFile(withV0);
-            if (currentBusted.isNotEmpty) await DefaultCacheManager().removeFile(currentBusted);
+            if (currentBusted.isNotEmpty)
+              await DefaultCacheManager().removeFile(currentBusted);
           } catch (_) {}
           if (mounted) {
             final cache = PaintingBinding.instance.imageCache;
             cache.evict(CachedNetworkImageProvider(baseUrl));
-            cache.evict(CachedNetworkImageProvider('$baseUrl${baseUrl.contains('?') ? '&' : '?'}v=0'));
-            if (currentBusted.isNotEmpty) cache.evict(CachedNetworkImageProvider(currentBusted));
+            cache.evict(
+              CachedNetworkImageProvider(
+                '$baseUrl${baseUrl.contains('?') ? '&' : '?'}v=0',
+              ),
+            );
+            if (currentBusted.isNotEmpty)
+              cache.evict(CachedNetworkImageProvider(currentBusted));
           }
         }
         if (!mounted) return;
@@ -178,92 +189,105 @@ class _ConsumerProfileScreenState extends ConsumerState<ConsumerProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final mutedColor = ConsumerTheme.mutedOf(context);
+    final primaryTextColor = ConsumerTheme.primaryTextOf(context);
+    final errorColor = ConsumerTheme.error;
+    final borderColor = ConsumerTheme.borderOf(context);
+
     return RefreshIndicator(
       onRefresh: _refresh,
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            'PROFILE',
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w500,
-              color: ConsumerTheme.muted,
-              letterSpacing: 0.14,
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            'My profile',
-            style: TextStyle(
-              fontSize: 34,
-              fontWeight: FontWeight.w700,
-              color: ConsumerTheme.primaryText,
-            ),
-          ),
-          const SizedBox(height: 24),
-          if (_loading)
-            const Center(
-              child: Padding(
-                padding: EdgeInsets.all(24),
-                child: CircularProgressIndicator(),
-              ),
-            )
-          else if (_error != null)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: Text(
-                _error!,
-                style: TextStyle(color: ConsumerTheme.error, fontSize: 14),
-              ),
-            )
-          else if (_consumer != null)
-            _buildProfilePanel()
-          else
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
             Text(
-              'Log in to see your profile.',
-              style: TextStyle(color: ConsumerTheme.muted),
+              'PROFILE',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+                color: mutedColor,
+                letterSpacing: 0.14,
+              ),
             ),
-          if (_consumer != null) ...[
-            const SizedBox(height: 32),
-            _buildShowMyReviewsButton(),
-          ],
-          const SizedBox(height: 24),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              onPressed: () async {
-                await ref.read(logoutUserProvider).call();
-                ref.read(consumerAuthIdProvider.notifier).state = null;
-                if (!context.mounted) return;
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(builder: (_) => const LoginScreen()),
-                  (_) => false,
-                );
-              },
-              icon: const Icon(Icons.logout_rounded, size: 20),
-              label: const Text('Log out'),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: ConsumerTheme.muted,
-                side: const BorderSide(color: ConsumerTheme.border),
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+            const SizedBox(height: 2),
+            Text(
+              'My profile',
+              style: TextStyle(
+                fontSize: 34,
+                fontWeight: FontWeight.w700,
+                color: primaryTextColor,
+              ),
+            ),
+            const SizedBox(height: 24),
+            if (_loading)
+              const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(24),
+                  child: CircularProgressIndicator(),
+                ),
+              )
+            else if (_error != null)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: Text(
+                  _error!,
+                  style: TextStyle(color: errorColor, fontSize: 14),
+                ),
+              )
+            else if (_consumer != null)
+              _buildProfilePanel(context)
+            else
+              Text(
+                'Log in to see your profile.',
+                style: TextStyle(color: mutedColor),
+              ),
+            if (_consumer != null) ...[
+              const SizedBox(height: 32),
+              _buildShowMyReviewsButton(context),
+            ],
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () async {
+                  await ref.read(logoutUserProvider).call();
+                  ref.read(consumerAuthIdProvider.notifier).state = null;
+                  if (!context.mounted) return;
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(builder: (_) => const LoginScreen()),
+                    (_) => false,
+                  );
+                },
+                icon: const Icon(Icons.logout_rounded, size: 20),
+                label: const Text('Log out'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: mutedColor,
+                  side: BorderSide(color: borderColor),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
-    ),
     );
   }
 
-  Widget _buildProfilePanel() {
+  Widget _buildProfilePanel(BuildContext context) {
     final c = _consumer!;
+    final surfaceColor = ConsumerTheme.surfaceOf(context);
+    final borderColor = ConsumerTheme.borderOf(context);
+    final bgColor = ConsumerTheme.backgroundOf(context);
+    final primaryTextColor = ConsumerTheme.primaryTextOf(context);
+    final bodyTextColor = ConsumerTheme.bodyTextOf(context);
+    final mutedColor = ConsumerTheme.mutedOf(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     final profilePicUrl = imageUrlFromPath(c.profilePicture);
     final cacheBustedUrl = profilePicUrl.isNotEmpty
         ? '$profilePicUrl${profilePicUrl.contains('?') ? '&' : '?'}v=$_profilePicCacheKey'
@@ -278,12 +302,12 @@ class _ConsumerProfileScreenState extends ConsumerState<ConsumerProfileScreen> {
 
     return Container(
       decoration: BoxDecoration(
-        color: ConsumerTheme.surface,
+        color: surfaceColor,
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: ConsumerTheme.border),
+        border: Border.all(color: borderColor),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
+            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.06),
             blurRadius: 24,
             offset: const Offset(0, 4),
           ),
@@ -295,15 +319,21 @@ class _ConsumerProfileScreenState extends ConsumerState<ConsumerProfileScreen> {
         children: [
           Container(
             height: 100,
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [
-                  Color(0xFF2A2420),
-                  Color(0xFF1A1612),
-                  Color(0xFF3A2E24),
-                ],
+                colors: isDark
+                    ? const [
+                        Color(0xFF2A2420),
+                        Color(0xFF1A1612),
+                        Color(0xFF3A2E24),
+                      ]
+                    : const [
+                        Color(0xFF8B6B3D),
+                        Color(0xFF6B4F2E),
+                        Color(0xFFC9A96E),
+                      ],
               ),
             ),
           ),
@@ -322,10 +352,7 @@ class _ConsumerProfileScreenState extends ConsumerState<ConsumerProfileScreen> {
                         height: 104,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          border: Border.all(
-                            color: ConsumerTheme.surface,
-                            width: 4,
-                          ),
+                          border: Border.all(color: surfaceColor, width: 4),
                           boxShadow: [
                             BoxShadow(
                               color: Colors.black.withValues(alpha: 0.15),
@@ -337,7 +364,9 @@ class _ConsumerProfileScreenState extends ConsumerState<ConsumerProfileScreen> {
                         child: ClipOval(
                           child: cacheBustedUrl.isNotEmpty
                               ? CachedNetworkImage(
-                                  key: ValueKey('profile_pic_$_profilePicCacheKey'),
+                                  key: ValueKey(
+                                    'profile_pic_$_profilePicCacheKey',
+                                  ),
                                   imageUrl: cacheBustedUrl,
                                   cacheKey: cacheBustedUrl,
                                   fit: BoxFit.cover,
@@ -396,10 +425,12 @@ class _ConsumerProfileScreenState extends ConsumerState<ConsumerProfileScreen> {
                         right: 0,
                         bottom: 0,
                         child: Material(
-                          color: ConsumerTheme.primaryText,
+                          color: primaryTextColor,
                           shape: const CircleBorder(),
                           child: InkWell(
-                            onTap: _uploadingPic ? null : _pickAndUploadProfilePicture,
+                            onTap: _uploadingPic
+                                ? null
+                                : _pickAndUploadProfilePicture,
                             customBorder: const CircleBorder(),
                             child: Container(
                               width: 32,
@@ -433,8 +464,8 @@ class _ConsumerProfileScreenState extends ConsumerState<ConsumerProfileScreen> {
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: ConsumerTheme.background,
-                        border: Border.all(color: ConsumerTheme.border),
+                        color: bgColor,
+                        border: Border.all(color: borderColor),
                         borderRadius: BorderRadius.circular(30),
                       ),
                       child: Row(
@@ -445,7 +476,7 @@ class _ConsumerProfileScreenState extends ConsumerState<ConsumerProfileScreen> {
                             height: 14,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
-                              color: ConsumerTheme.muted,
+                              color: mutedColor,
                             ),
                           ),
                           const SizedBox(width: 8),
@@ -454,7 +485,7 @@ class _ConsumerProfileScreenState extends ConsumerState<ConsumerProfileScreen> {
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w500,
-                              color: ConsumerTheme.muted,
+                              color: mutedColor,
                             ),
                           ),
                         ],
@@ -472,22 +503,20 @@ class _ConsumerProfileScreenState extends ConsumerState<ConsumerProfileScreen> {
               children: [
                 Text(
                   c.displayName.isEmpty ? 'User' : c.displayName,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 26,
                     fontWeight: FontWeight.w700,
-                    color: ConsumerTheme.primaryText,
+                    color: primaryTextColor,
                     letterSpacing: -0.03,
                     height: 1.1,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '@${(c.username != null && c.username!.isNotEmpty)
-                      ? c.username!
-                      : c.displayName.replaceAll(' ', '_').toLowerCase()}',
+                  '@${(c.username != null && c.username!.isNotEmpty) ? c.username! : c.displayName.replaceAll(' ', '_').toLowerCase()}',
                   style: TextStyle(
                     fontSize: 14,
-                    color: ConsumerTheme.muted,
+                    color: mutedColor,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -497,7 +526,7 @@ class _ConsumerProfileScreenState extends ConsumerState<ConsumerProfileScreen> {
                     '"${c.bio}"',
                     style: TextStyle(
                       fontSize: 14,
-                      color: ConsumerTheme.bodyText,
+                      color: bodyTextColor,
                       height: 1.65,
                       fontStyle: FontStyle.italic,
                     ),
@@ -509,7 +538,8 @@ class _ConsumerProfileScreenState extends ConsumerState<ConsumerProfileScreen> {
           Container(
             padding: const EdgeInsets.fromLTRB(28, 16, 28, 24),
             decoration: BoxDecoration(
-              color: ConsumerTheme.background.withValues(alpha: 0.5),
+              color: bgColor.withValues(alpha: isDark ? 0.8 : 0.5),
+              border: Border(top: BorderSide(color: borderColor, width: 1)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -519,7 +549,7 @@ class _ConsumerProfileScreenState extends ConsumerState<ConsumerProfileScreen> {
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w500,
-                    color: ConsumerTheme.muted,
+                    color: mutedColor,
                     letterSpacing: 0.12,
                   ),
                 ),
@@ -529,19 +559,39 @@ class _ConsumerProfileScreenState extends ConsumerState<ConsumerProfileScreen> {
                     c.gender != null && c.gender!.isNotEmpty ||
                     c.country != null && c.country!.isNotEmpty) ...[
                   if (c.phoneNumber != null && c.phoneNumber!.isNotEmpty)
-                    _detailRow(Icons.phone_outlined, 'Phone', c.phoneNumber!),
+                    _detailRow(
+                      context,
+                      Icons.phone_outlined,
+                      'Phone',
+                      c.phoneNumber!,
+                    ),
                   if (c.country != null && c.country!.isNotEmpty)
-                    _detailRow(Icons.location_on_outlined, 'Country', c.country!),
+                    _detailRow(
+                      context,
+                      Icons.location_on_outlined,
+                      'Country',
+                      c.country!,
+                    ),
                   if (c.gender != null && c.gender!.isNotEmpty)
-                    _detailRow(Icons.person_outline_rounded, 'Gender', c.gender!),
+                    _detailRow(
+                      context,
+                      Icons.person_outline_rounded,
+                      'Gender',
+                      c.gender!,
+                    ),
                   if (c.dob != null && c.dob!.isNotEmpty)
-                    _detailRow(Icons.calendar_today_outlined, 'Date of birth', c.dob!),
+                    _detailRow(
+                      context,
+                      Icons.calendar_today_outlined,
+                      'Date of birth',
+                      c.dob!,
+                    ),
                 ] else
                   Text(
                     'Phone, location, and other details can be added when profile editing is available.',
                     style: TextStyle(
                       fontSize: 13,
-                      color: ConsumerTheme.muted,
+                      color: mutedColor,
                       fontStyle: FontStyle.italic,
                     ),
                   ),
@@ -551,21 +601,26 @@ class _ConsumerProfileScreenState extends ConsumerState<ConsumerProfileScreen> {
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.dark_mode_outlined, size: 20, color: ConsumerTheme.muted),
+                        Icon(
+                          Icons.dark_mode_outlined,
+                          size: 20,
+                          color: mutedColor,
+                        ),
                         const SizedBox(width: 10),
                         Text(
                           'Dark theme',
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
-                            color: ConsumerTheme.primaryText,
+                            color: primaryTextColor,
                           ),
                         ),
                       ],
                     ),
                     Switch.adaptive(
                       value: ref.watch(themeModeProvider) == ThemeMode.dark,
-                      onChanged: (_) => ref.read(themeModeProvider.notifier).toggleTheme(),
+                      onChanged: (_) =>
+                          ref.read(themeModeProvider.notifier).toggleTheme(),
                     ),
                   ],
                 ),
@@ -577,7 +632,7 @@ class _ConsumerProfileScreenState extends ConsumerState<ConsumerProfileScreen> {
     );
   }
 
-  Widget _buildShowMyReviewsButton() {
+  Widget _buildShowMyReviewsButton(BuildContext context) {
     return SizedBox(
       width: double.infinity,
       child: FilledButton.icon(
@@ -602,13 +657,20 @@ class _ConsumerProfileScreenState extends ConsumerState<ConsumerProfileScreen> {
     );
   }
 
-  Widget _detailRow(IconData icon, String label, String value) {
+  Widget _detailRow(
+    BuildContext context,
+    IconData icon,
+    String label,
+    String value,
+  ) {
+    final mutedColor = ConsumerTheme.mutedOf(context);
+    final primaryTextColor = ConsumerTheme.primaryTextOf(context);
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 18, color: ConsumerTheme.muted),
+          Icon(icon, size: 18, color: mutedColor),
           const SizedBox(width: 10),
           Expanded(
             child: Column(
@@ -619,15 +681,15 @@ class _ConsumerProfileScreenState extends ConsumerState<ConsumerProfileScreen> {
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w500,
-                    color: ConsumerTheme.muted,
+                    color: mutedColor,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   value,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
-                    color: ConsumerTheme.primaryText,
+                    color: primaryTextColor,
                     fontWeight: FontWeight.w500,
                   ),
                 ),

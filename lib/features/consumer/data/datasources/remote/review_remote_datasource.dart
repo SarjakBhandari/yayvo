@@ -57,8 +57,10 @@ class ReviewRemoteDatasource {
         if (pag is Map) {
           final p = pag['page'];
           final tp = pag['totalPages'];
-          if (p != null) currentPage = (p is int) ? p : int.tryParse(p.toString()) ?? 1;
-          if (tp != null) totalPages = (tp is int) ? tp : int.tryParse(tp.toString()) ?? 1;
+          if (p != null)
+            currentPage = (p is int) ? p : int.tryParse(p.toString()) ?? 1;
+          if (tp != null)
+            totalPages = (tp is int) ? tp : int.tryParse(tp.toString()) ?? 1;
         }
       }
       if (rawList.isEmpty) {
@@ -72,7 +74,9 @@ class ReviewRemoteDatasource {
     final list = <ReviewApiModel>[];
     for (final e in rawList) {
       try {
-        final map = e is Map ? Map<String, dynamic>.from(e) : <String, dynamic>{};
+        final map = e is Map
+            ? Map<String, dynamic>.from(e)
+            : <String, dynamic>{};
         final model = ReviewApiModel.fromJson(map);
         if (model.id.isNotEmpty) list.add(model);
       } catch (_) {}
@@ -93,24 +97,47 @@ class ReviewRemoteDatasource {
     } else if (raw is Map) {
       final map = Map<String, dynamic>.from(raw);
       final data = map['data'];
-      if (data is List) rawList = data;
+      if (data is List)
+        rawList = data;
       else if (data is Map) {
         final inner = Map<String, dynamic>.from(data);
         final items = inner['items'];
         if (items is List) rawList = items;
       }
-      if (rawList.isEmpty && map['items'] is List) rawList = map['items'] as List;
+      if (rawList.isEmpty && map['items'] is List)
+        rawList = map['items'] as List;
     }
     if (rawList.isEmpty) rawList = responseToList(raw);
     final list = <ReviewApiModel>[];
     for (final e in rawList) {
       try {
-        final map = e is Map ? Map<String, dynamic>.from(e) : <String, dynamic>{};
+        final map = e is Map
+            ? Map<String, dynamic>.from(e)
+            : <String, dynamic>{};
         final model = ReviewApiModel.fromJson(map);
         if (model.id.isNotEmpty) list.add(model);
       } catch (_) {}
     }
     return list;
+  }
+
+  Future<void> deleteReview(String id) async {
+    await _client.delete(ApiEndpoints.reviewById(id));
+  }
+
+  Future<ReviewApiModel> updateReview(
+    String id,
+    Map<String, dynamic> payload,
+  ) async {
+    final resp = await _client.put(ApiEndpoints.reviewById(id), data: payload);
+    final raw = resp.data;
+    if (raw == null) return ReviewApiModel.fromJson({});
+    final map = raw is Map ? Map<String, dynamic>.from(raw) : null;
+    if (map == null) return ReviewApiModel.fromJson({});
+    final data = map['data'] is Map
+        ? Map<String, dynamic>.from(map['data'] as Map)
+        : map;
+    return ReviewApiModel.fromJson(data);
   }
 
   Future<void> likeReview(String reviewId, String userId) async {

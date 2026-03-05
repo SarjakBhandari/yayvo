@@ -65,7 +65,9 @@ class _ReviewDetailDialogState extends ConsumerState<ReviewDetailDialog> {
   void initState() {
     super.initState();
     _titleController = TextEditingController(text: widget.review.title);
-    _descriptionController = TextEditingController(text: widget.review.description);
+    _descriptionController = TextEditingController(
+      text: widget.review.description,
+    );
     _sentiments = List.from(widget.review.sentiments);
   }
 
@@ -82,8 +84,18 @@ class _ReviewDetailDialogState extends ConsumerState<ReviewDetailDialog> {
     if (widget.review.createdAt == null) return '';
     final d = widget.review.createdAt!;
     const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
     return '${months[d.month - 1]} ${d.day}, ${d.year}';
   }
@@ -114,12 +126,9 @@ class _ReviewDetailDialogState extends ConsumerState<ReviewDetailDialog> {
       (_) {
         setState(() => _saving = false);
         widget.onUpdated?.call(updated);
+        final messenger = ScaffoldMessenger.of(context);
         Navigator.of(context).pop();
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Review updated')),
-          );
-        }
+        messenger.showSnackBar(const SnackBar(content: Text('Review updated')));
       },
     );
   }
@@ -156,13 +165,11 @@ class _ReviewDetailDialogState extends ConsumerState<ReviewDetailDialog> {
         _deleting = false;
       }),
       (_) {
-        Navigator.of(context).pop();
         widget.onDeleted?.call();
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Review deleted')),
-          );
-        }
+        // Capture messenger before pop since mounted=false after pop
+        final messenger = ScaffoldMessenger.of(context);
+        Navigator.of(context).pop();
+        messenger.showSnackBar(const SnackBar(content: Text('Review deleted')));
       },
     );
   }
@@ -188,7 +195,8 @@ class _ReviewDetailDialogState extends ConsumerState<ReviewDetailDialog> {
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
               child: Row(
                 children: [
-                  if (widget.authorName != null && widget.authorName!.isNotEmpty)
+                  if (widget.authorName != null &&
+                      widget.authorName!.isNotEmpty)
                     Expanded(
                       child: Text(
                         widget.authorName!,
@@ -225,7 +233,10 @@ class _ReviewDetailDialogState extends ConsumerState<ReviewDetailDialog> {
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Text(
                   _error!,
-                  style: const TextStyle(color: ConsumerTheme.error, fontSize: 13),
+                  style: const TextStyle(
+                    color: ConsumerTheme.error,
+                    fontSize: 13,
+                  ),
                 ),
               ),
             if (_editing) ...[
@@ -293,7 +304,9 @@ class _ReviewDetailDialogState extends ConsumerState<ReviewDetailDialog> {
                                 ? const SizedBox(
                                     width: 20,
                                     height: 20,
-                                    child: CircularProgressIndicator(strokeWidth: 2),
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
                                   )
                                 : const Text('Save'),
                           ),
@@ -326,13 +339,16 @@ class _ReviewDetailDialogState extends ConsumerState<ReviewDetailDialog> {
                       child: CachedNetworkImage(
                         imageUrl: _imageUrl,
                         fit: BoxFit.cover,
-                        placeholder: (_, __) => Container(color: ConsumerTheme.borderLight),
-                        errorWidget: (_, __, ___) => Container(color: ConsumerTheme.borderLight),
+                        placeholder: (_, __) =>
+                            Container(color: ConsumerTheme.borderLight),
+                        errorWidget: (_, __, ___) =>
+                            Container(color: ConsumerTheme.borderLight),
                       ),
                     ),
                   ),
                 ),
-              if (review.productName != null && review.productName!.isNotEmpty) ...[
+              if (review.productName != null &&
+                  review.productName!.isNotEmpty) ...[
                 const SizedBox(height: 8),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -368,22 +384,26 @@ class _ReviewDetailDialogState extends ConsumerState<ReviewDetailDialog> {
                           spacing: 8,
                           runSpacing: 8,
                           children: review.sentiments
-                              .map((s) => Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 12, vertical: 6),
-                                    decoration: BoxDecoration(
-                                      color: ConsumerTheme.borderLight,
-                                      borderRadius: BorderRadius.circular(20),
+                              .map(
+                                (s) => Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 6,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: ConsumerTheme.borderLight,
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Text(
+                                    '#$s',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                      color: ConsumerTheme.bodyText,
                                     ),
-                                    child: Text(
-                                      '#$s',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w500,
-                                        color: ConsumerTheme.bodyText,
-                                      ),
-                                    ),
-                                  ))
+                                  ),
+                                ),
+                              )
                               .toList(),
                         ),
                       ],
@@ -402,7 +422,9 @@ class _ReviewDetailDialogState extends ConsumerState<ReviewDetailDialog> {
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
                             OutlinedButton.icon(
-                              onPressed: _deleting ? null : () => setState(() => _editing = true),
+                              onPressed: _deleting
+                                  ? null
+                                  : () => setState(() => _editing = true),
                               icon: const Icon(Icons.edit_rounded, size: 18),
                               label: const Text('Edit'),
                             ),
@@ -421,7 +443,10 @@ class _ReviewDetailDialogState extends ConsumerState<ReviewDetailDialog> {
                                         color: Colors.white,
                                       ),
                                     )
-                                  : const Icon(Icons.delete_outline_rounded, size: 18),
+                                  : const Icon(
+                                      Icons.delete_outline_rounded,
+                                      size: 18,
+                                    ),
                               label: Text(_deleting ? 'Deleting…' : 'Delete'),
                             ),
                           ],

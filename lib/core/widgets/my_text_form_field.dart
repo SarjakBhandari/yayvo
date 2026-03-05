@@ -32,47 +32,41 @@ class MyTextFormField extends StatelessWidget {
       ),
       decoration: InputDecoration(
         labelText: label,
+        floatingLabelBehavior: FloatingLabelBehavior.always,
         labelStyle: theme.textTheme.bodyMedium?.copyWith(
           color: theme.colorScheme.onSurface.withOpacity(0.8),
         ),
         prefixIcon: Icon(prefixIcon, color: theme.colorScheme.primary),
         suffixIcon: suffixIcon,
         filled: true,
-        fillColor: theme.inputDecorationTheme.fillColor ??
+        fillColor:
+            theme.inputDecorationTheme.fillColor ??
             theme.colorScheme.surfaceVariant,
-        contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+        contentPadding: const EdgeInsets.symmetric(
+          vertical: 14,
+          horizontal: 16,
+        ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(
-            color: theme.dividerColor,
-            width: 1.2,
-          ),
+          borderSide: BorderSide(color: theme.dividerColor, width: 1.2),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(
-            color: theme.colorScheme.primary,
-            width: 1.5,
-          ),
+          borderSide: BorderSide(color: theme.colorScheme.primary, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(
-            color: theme.colorScheme.error,
-            width: 1.5,
-          ),
+          borderSide: BorderSide(color: theme.colorScheme.error, width: 1.5),
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(
-            color: theme.colorScheme.error,
-            width: 1.5,
-          ),
+          borderSide: BorderSide(color: theme.colorScheme.error, width: 1.5),
         ),
       ),
       onChanged: onChanged,
-      validator: validator ??
-              (value) {
+      validator:
+          validator ??
+          (value) {
             if (value == null || value.isEmpty) {
               return "Please enter $label";
             }
