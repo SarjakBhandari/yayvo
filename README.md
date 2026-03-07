@@ -1,16 +1,20 @@
 # yayvo
 
-A social- commerce app which works with reviews
+It is a socio commerce app that works with reviews and products. Instead of using 4 stars and 5 stars reviews
+it uses sentiments like calm, cozy, nostalgic, disappointed, etc. 
+Features: 
+1) Review feed -> users can see other user's review, save them and like them
+2) Explore Page-> User can see retailer's products, like and save them
+3) create review-> Users can create their own reviews
+4) collection -> Users can see their saved reviews and products
+5) profile-> user can view their profile, change theme and see their product, delete and edit them
+6) Sensor implentation -> Proximity sensor changes the theme, shaking phone refreshed the feed and also resets the form
 
-## Getting Started
+Project for ST6002CEM Mobile Application Development, BSC. (Hons) in computing, Softwarica College of IT and Ecommerce
 
-This project is a starting point for a Flutter application.
+language used: flutter
+Local Storage: Hive databse
 
-A few resources to get you started if this is your first Flutter project:
+By Sarjak Bhandari 
+CoventryID: 14811977
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
